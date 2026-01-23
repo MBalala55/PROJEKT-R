@@ -1,0 +1,54 @@
+# Android build artifacts
+build/
+*.apk
+*.aar
+*.ap_
+
+# Android Studio / IntelliJ files
+.gradle/
+local.properties
+.navigation/
+captures/
+.externalNativeBuild
+.cxx/
+*.iml
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+
+# Compiled Java class files
+*.class
+
+# Log files
+*.log
+
+# Maven / Gradle build output
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot specific
+bin/
+out/
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Temp files for databases
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Microsoft Office temporary files
+~$*.docx
+~$*.xlsx
+~$*.pptx
+
+# Windows thumbnails and metadata
+Thumbs.db
+desktop.ini
+
+# macOS metadata
+.DS_Store
