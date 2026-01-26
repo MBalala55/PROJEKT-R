@@ -1,0 +1,1 @@
+web: java -jar server/target/elektropregled-server-1.0.0.jar

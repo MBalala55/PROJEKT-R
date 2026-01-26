@@ -1,0 +1,128 @@
+### Variables
+@baseUrl = http://localhost:8080/api
+@token = eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJtbWFya292aWMiLCJpYXQiOjE3Njk0NDExMzksImV4cCI6MTc2OTUyNzUzOX0.AvtnUaWhPfoEJvWfFo50bJ7HfBGIZ5X83EAKyxBV7B_HWfLYqZ_ErgkGZPGBVwy5v_yuVZk85tkGwzoAwcB15w
+@lokalniIdPregled = 9d5c1a4a-4a6b-4b6d-9f0e-1234567890ab
+@lokalniIdStavka1 = 9d5c1a4a-4a6b-4b6d-9f0e-1234567890ac
+@lokalniIdStavka2 = 9d5c1a4a-4a6b-4b6d-9f0e-1234567890ad
+@lokalniIdStavka3 = 9d5c1a4a-4a6b-4b6d-9f0e-1234567890ae
+@lokalniIdStavka4 = 9d5c1a4a-4a6b-4b6d-9f0e-1234567890af
+
+### Login
+POST {{baseUrl}}/v1/auth/login
+Content-Type: application/json
+
+{
+  "korisnicko_ime": "mmarkovic",
+  "lozinka": "pass123"
+}
+
+### Test GET: Lista postrojenja
+GET {{baseUrl}}/v1/postrojenja
+Authorization: Bearer {{token}}
+
+### Test GET: Lista polja za postrojenje 1013
+GET {{baseUrl}}/v1/postrojenja/1013/polja
+Authorization: Bearer {{token}}
+
+### Test GET: Checklist za prvo polje u postrojenju 1013
+GET {{baseUrl}}/v1/postrojenja/1013/checklist?id_polje=50238
+Authorization: Bearer {{token}}
+
+### Test GET: Lista polja za veliko postrojenje 1001 (ZAGREB 1, 445 uređaja)
+GET {{baseUrl}}/v1/postrojenja/1001/polja
+Authorization: Bearer {{token}}
+
+### Test GET: Checklist za jedno polje u velikom postrojenju 1001
+GET {{baseUrl}}/v1/postrojenja/1001/checklist?id_polje=50002
+Authorization: Bearer {{token}}
+
+### Test GET: Checklist za uređaje BEZ polja (direktno na postrojenju) - koristi id_polje=0
+GET {{baseUrl}}/v1/postrojenja/1001/checklist?id_polje=0
+Authorization: Bearer {{token}}
+
+### Test 1: Prazna Zahtjena (trebala bi greška)
+POST {{baseUrl}}/v1/pregled/sync
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{}
+
+### Test 2: Validan Sync Zahtjev
+POST {{baseUrl}}/v1/pregled/sync
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pregled": {
+    "lokalni_id": "{{lokalniIdPregled}}",
+    "pocetak": "2026-01-26T10:30:00",
+    "id_korisnika": 1,
+    "id_postr": 1,
+    "napomena": "Test pregled"
+  },
+  "stavke": [
+    {
+      "lokalni_id": "{{lokalniIdStavka1}}",
+      "id_parametra": 1,
+      "id_ured": 1,
+      "vrijednost_bool": true
+    },
+    {
+      "lokalni_id": "{{lokalniIdStavka2}}",
+      "id_parametra": 2,
+      "id_ured": 1,
+      "vrijednost_num": 45.0
+    },
+    {
+      "lokalni_id": "{{lokalniIdStavka3}}",
+      "id_parametra": 3,
+      "id_ured": 3,
+      "vrijednost_num": 65.0
+    },
+    {
+      "lokalni_id": "{{lokalniIdStavka4}}",
+      "id_parametra": 5,
+      "id_ured": 4,
+      "vrijednost_bool": true
+    }
+  ]
+}
+
+### Test 3: Duplikat (isti lokalniId - trebala bi greška)
+POST {{baseUrl}}/v1/pregled/sync
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pregled": {
+    "lokalni_id": "{{lokalniIdPregled}}",
+    "pocetak": "2026-01-26T11:00:00",
+    "id_korisnika": 1,
+    "id_postr": 1,
+    "napomena": "Duplikat"
+  },
+  "stavke": []
+}
+
+### Test 4: Nepostojeći Korisnik (trebala bi greška FK)
+POST {{baseUrl}}/v1/pregled/sync
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pregled": {
+    "lokalni_id": "550e8400-e29b-41d4-a716-446655440099",
+    "pocetak": "2026-01-26T12:00:00",
+    "id_korisnika": 9999,
+    "id_postr": 1,
+    "napomena": "Test FK validation"
+  },
+  "stavke": [
+    {
+      "lokalni_id": "550e8400-e29b-41d4-a716-446655440199",
+      "id_parametra": 1,
+      "id_ured": 1,
+      "vrijednost_bool": true
+    }
+  ]
+}

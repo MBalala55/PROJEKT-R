@@ -48,6 +48,28 @@ out/
 
 # Windows thumbnails and metadata
 Thumbs.db
+
+# Sensitive files - NIKADA ne push-ati!
+*.env
+.env
+.env.local
+.env.*.local
+local.properties
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 desktop.ini
 
 # macOS metadata

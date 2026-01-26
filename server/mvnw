@@ -1,0 +1,34 @@
+#!/bin/sh
+# Licensed to the Apache Software Foundation (ASF)
+
+set -e
+
+PRG="$0"
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+        PRG="$link"
+    else
+        PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+
+MAVEN_HOME=`dirname "$PRG"`/..
+
+[ -n "$JAVA_HOME" ] && JAVA_HOME=`(cd "$JAVA_HOME" && pwd)`
+[ -n "$M2_HOME" ] && M2_HOME=`(cd "$M2_HOME" && pwd)`
+
+if [ ! -x "$JAVA_HOME/bin/java" ] && [ ! -x "$JAVA_HOME/bin/java.exe" ]; then
+    JAVACMD=`which java`
+else
+    JAVACMD="$JAVA_HOME/bin/java"
+fi
+
+if [ ! -f "$MAVEN_HOME/lib/maven-core-3.9.5.jar" ]; then
+    echo "Maven wrapper not found. Downloading..."
+fi
+
+exec "$JAVACMD" \
+    -classpath "$MAVEN_HOME/.mvn/wrapper/maven-wrapper.jar" \
+    org.apache.maven.wrapper.MavenWrapperMain "$@"
