@@ -1,13 +1,23 @@
 # Ogledna mobilna aplikacija za redoviti mjesečni pregled elemenata elektroenergetskih postrojenja
 
+## 📁 Struktura Projekta
+
+```
+PROJEKT-R/
+├── android-app/          # 📱 Android aplikacija (vidi android-app/README.md)
+├── server/               # 🖥️ Spring Boot backend
+├── baza/                 # 💾 Database scripts
+└── docs/                 # 📚 Dokumentacija
+```
+
 ## Brzi start
 
-### Development (Lokalno)
+### Backend Development (Lokalno)
 
 ```bash
 # 1. Kloniraj repo
-git clone https://github.com/your-username/R.git
-cd R
+git clone https://github.com/your-username/PROJEKT-R.git
+cd PROJEKT-R
 
 # 2. Kreiraj PostgreSQL bazu
 psql -U postgres
@@ -23,6 +33,16 @@ mvn spring-boot:run
 # 5. Testiraj API
 # Swagger UI: http://localhost:8080/api/swagger-ui.html
 # Login: POST http://localhost:8080/api/v1/auth/login
+```
+
+### Android Development
+
+Za Android aplikaciju, vidi **[android-app/README.md](android-app/README.md)**.
+
+**Brzi start:**
+```bash
+cd android-app
+# Otvori android-app folder u Android Studio
 ```
 
 ### Production (Render)
@@ -214,6 +234,162 @@ spring.datasource.password=${DB_PASSWORD}
 spring.jpa.hibernate.ddl-auto=update
 server.port=${PORT:8080}
 ```
+
+## Android Aplikacija
+
+Android mobilna aplikacija za digitalizaciju elektropregleda s offline-first pristupom. Aplikacija omogućava tehničarima da obavljaju preglede bez internetske veze, a rezultati se sinkroniziraju s serverom kada je dostupan internet.
+
+### 📱 Kako Pokrenuti
+
+**Android aplikacija se nalazi u `android-app/` folderu.**
+
+Za detaljne upute, vidi **[android-app/README.md](android-app/README.md)**.
+
+**Brzi start:**
+```bash
+git clone https://github.com/your-username/PROJEKT-R.git
+cd PROJEKT-R/android-app
+# Otvori android-app folder u Android Studio
+```
+
+### 🏗️ Tehnologije
+
+- **Kotlin** - glavni programski jezik
+- **Android SDK** - minSdk 31 (Android 12+), targetSdk 34
+- **Room Database** - lokalna SQLite baza podataka
+- **Retrofit** - REST API komunikacija
+- **MVVM arhitektura** - ViewModel + Repository pattern
+- **WorkManager** - pozadinska sinkronizacija
+- **EncryptedSharedPreferences** - sigurno spremanje JWT tokena
+
+### 📂 Struktura Projekta
+
+```
+PROJEKT-R/
+├── android-app/          # 📱 Android aplikacija
+│   ├── app/              # Android app modul
+│   ├── build.gradle      # Gradle build config
+│   ├── settings.gradle   # Project settings
+│   └── README.md         # Detaljne upute za Android
+├── server/               # 🖥️ Spring Boot backend
+├── baza/                 # 💾 Database scripts
+└── docs/                 # 📚 Dokumentacija
+```
+
+### Offline Mode
+
+Aplikacija je dizajnirana za **offline-first** rad:
+
+1. **Kreiranje pregleda offline:**
+   - Korisnik može kreirati i popuniti preglede bez internetske veze
+   - Svi podaci se spremaju lokalno u Room bazu podataka
+   - Svaki pregled i stavka imaju jedinstveni `lokalni_id` (UUID)
+
+2. **Sinkronizacija:**
+   - Kada je dostupan internet, korisnik može sinkronizirati preglede
+   - Aplikacija automatski pokušava sinkronizaciju u pozadini (WorkManager)
+   - Status sinkronizacije: PENDING, SYNCING, SYNCED, FAILED
+
+3. **Persistencija:**
+   - Svi podaci se čuvaju lokalno čak i nakon zatvaranja aplikacije
+   - Aplikacija može raditi potpuno offline
+
+### Kako Testirati Sinkronizaciju
+
+1. **Offline test:**
+   - Uključi Airplane Mode na uređaju
+   - Prijavi se u aplikaciju (ako već nisi)
+   - Kreiraj novi pregled i popuni checklist
+   - Završi pregled - podaci su spremljeni lokalno
+   - Restartaj aplikaciju - pregled je još uvijek tu
+
+2. **Online test:**
+   - Isključi Airplane Mode
+   - Otvori Sync ekran (dodaj u navigaciju ako nije)
+   - Klikni "Sinkroniziraj"
+   - Provjeri da je pregled uspješno poslan na server
+
+3. **Pozadinska sinkronizacija:**
+   - Aplikacija automatski pokušava sinkronizaciju svakih 15 minuta kada je dostupan internet
+   - WorkManager upravlja pozadinskom sinkronizacijom
+
+### 📁 Detaljna Struktura Android Aplikacije
+
+```
+android-app/app/src/main/java/com/example/elektropregled/
+├── data/
+│   ├── api/              # Retrofit API servisi i DTOs
+│   ├── database/         # Room entities, DAOs, AppDatabase
+│   ├── repository/       # Repository pattern (local + remote)
+│   ├── sync/             # WorkManager sync worker
+│   └── TokenStorage.kt   # EncryptedSharedPreferences za JWT
+├── ui/
+│   ├── screen/           # Fragments (Login, FacilityList, etc.)
+│   ├── viewmodel/        # ViewModels za sve ekrane
+│   └── MainActivity.kt   # Glavna aktivnost
+└── ElektropregledApplication.kt  # Application class s dependency injection
+```
+
+### Baza Podataka
+
+Aplikacija koristi Room Database s shemom iz `baza/scripts/mobilna_sqlite.sql`:
+
+- **Korisnik** - lokalni korisnici (opcionalno)
+- **Postrojenje** - postrojenja s servera
+- **Polje** - polja u postrojenjima
+- **Pregled** - pregledi (lokalni + server ID)
+- **StavkaPregleda** - stavke pregleda (vrijednosti parametara)
+
+### Workflow
+
+1. **Prijava:**
+   - Korisnik se prijavljuje s korisničkim imenom i lozinkom
+   - JWT token se sprema sigurno u EncryptedSharedPreferences
+   - Token je valjan 24 sata
+
+2. **Pregled postrojenja:**
+   - Lista svih postrojenja s brojem pregleda i zadnjim pregledom
+   - Overdue postrojenja (starija od 1 mjeseca) su označena crveno
+
+3. **Odabir polja:**
+   - Lista polja u odabranom postrojenju
+   - Virtualno polje "Direktno na postrojenju" za uređaje bez polja
+
+4. **Checklist i unos podataka:**
+   - Lista uređaja s parametrima provjere
+   - BOOLEAN parametri su defaultno "OK" (true)
+   - NUMERIC parametri imaju min/max validaciju
+   - TEXT parametri za napomene
+   - Svi podaci se spremaju lokalno odmah
+
+5. **Sinkronizacija:**
+   - Manualna sinkronizacija preko Sync ekrana
+   - Automatska pozadinska sinkronizacija (WorkManager)
+   - Status sinkronizacije se prikazuje korisniku
+
+### Važne Napomene
+
+- **Offline-first:** Aplikacija mora raditi potpuno offline
+- **Jedan pregled = jedna osoba:** Jedan pregled postrojenja mora biti završen u cijelosti
+- **Default vrijednosti:** BOOLEAN parametri su defaultno "OK" za brži rad u terenu
+- **UUID:** Svaki pregled i stavka imaju jedinstveni `lokalni_id` za mapiranje s serverom
+
+### Troubleshooting
+
+**Problem: Aplikacija se ne može prijaviti**
+- Provjeri da je backend pokrenut i dostupan
+- Provjeri backend URL u `ApiClient.kt`
+- Provjeri korisničko ime i lozinku
+
+**Problem: Sinkronizacija ne radi**
+- Provjeri internetsku vezu
+- Provjeri da je JWT token valjan (prijavi se ponovno)
+- Provjeri logove u Logcat za detalje greške
+
+**Problem: Podaci se ne spremaju offline**
+- Provjeri da Room baza radi ispravno
+- Provjeri logove za SQL greške
+- Provjeri da su foreign key constraints omogućeni
 
 ## Kontakt
 

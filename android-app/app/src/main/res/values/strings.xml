@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Elektropregled</string>
+    
+    <!-- Login -->
+    <string name="login_title">Prijava</string>
+    <string name="username">Korisničko ime</string>
+    <string name="password">Lozinka</string>
+    <string name="login_button">Prijavi se</string>
+    <string name="login_error">Greška pri prijavi</string>
+    <string name="invalid_credentials">Neispravno korisničko ime ili lozinka</string>
+    
+    <!-- Facilities -->
+    <string name="facilities_title">Postrojenja</string>
+    <string name="no_facilities">Nema postrojenja</string>
+    <string name="last_inspection">Zadnji pregled: %1$s</string>
+    <string name="no_inspections">Nema pregleda</string>
+    <string name="overdue">Zakasnilo</string>
+    
+    <!-- Fields -->
+    <string name="fields_title">Polja</string>
+    <string name="no_fields">Nema polja</string>
+    <string name="directly_on_facility">Direktno na postrojenju</string>
+    <string name="devices_count">Uređaja: %1$d</string>
+    
+    <!-- Checklist -->
+    <string name="checklist_title">Provjera</string>
+    <string name="device">Uređaj</string>
+    <string name="parameter">Parametar</string>
+    <string name="value">Vrijednost</string>
+    <string name="note">Napomena</string>
+    <string name="ok">OK</string>
+    <string name="not_ok">Nije OK</string>
+    <string name="mark_as_issue">Označi kao problem</string>
+    <string name="issue_note_required">Molimo unesite napomenu za problem</string>
+    <string name="save_inspection">Spremi pregled</string>
+    <string name="finish_inspection">Završi pregled</string>
+    <string name="inspection_saved">Pregled je spremljen</string>
+    <string name="required_field">Obavezno polje</string>
+    
+    <!-- Sync -->
+    <string name="sync_title">Sinkronizacija</string>
+    <string name="sync_button">Sinkroniziraj</string>
+    <string name="sync_pending">Čeka sinkronizaciju: %1$d</string>
+    <string name="sync_synced">Sinkronizirano: %1$d</string>
+    <string name="sync_failed">Neuspješno: %1$d</string>
+    <string name="sync_in_progress">Sinkronizacija u tijeku...</string>
+    <string name="sync_success">Sinkronizacija uspješna</string>
+    <string name="sync_error">Greška pri sinkronizaciji</string>
+    <string name="no_internet">Nema internetske veze</string>
+    
+    <!-- Common -->
+    <string name="loading">Učitavanje...</string>
+    <string name="error">Greška</string>
+    <string name="retry">Pokušaj ponovno</string>
+    <string name="cancel">Odustani</string>
+    <string name="save">Spremi</string>
+    <string name="back">Natrag</string>
+</resources>
