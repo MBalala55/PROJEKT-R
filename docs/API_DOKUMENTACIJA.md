@@ -4,10 +4,10 @@
 
 Backend API za mobilnu aplikaciju za digitalizaciju elektropregleda. API koristi JWT tokene za autentifikaciju i vraća JSON odgovore.
 
-- **Base URL:** `http://localhost:8080/api` (development)
+- **Base URL:** `https://elektropregled-api.onrender.com/api` (production)
 - **Verzija:** 1.0.0
 - **Autentifikacija:** JWT Bearer token
-- **Swagger UI:** http://localhost:8080/api/swagger-ui.html
+- **Swagger UI:** https://elektropregled-api.onrender.com/api/swagger-ui.html
 
 ---
 
@@ -21,7 +21,7 @@ Backend API za mobilnu aplikaciju za digitalizaciju elektropregleda. API koristi
 
 **Request:**
 ```http
-POST http://localhost:8080/api/v1/auth/login
+POST https://elektropregled-api.onrender.com/api/v1/auth/login
 Content-Type: application/json
 
 {
@@ -62,7 +62,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-GET http://localhost:8080/api/v1/postrojenja
+GET https://elektropregled-api.onrender.com/api/v1/postrojenja
 Authorization: Bearer YOUR_TOKEN
 ```
 
@@ -109,7 +109,7 @@ Authorization: Bearer YOUR_TOKEN
 
 **Request:**
 ```http
-GET http://localhost:8080/api/v1/postrojenja/1001/polja
+GET https://elektropregled-api.onrender.com/api/v1/postrojenja/1001/polja
 Authorization: Bearer YOUR_TOKEN
 ```
 
@@ -165,13 +165,13 @@ Authorization: Bearer YOUR_TOKEN
 
 **Request - Za polje:**
 ```http
-GET http://localhost:8080/api/v1/postrojenja/1001/checklist?id_polje=50001
+GET https://elektropregled-api.onrender.com/api/v1/postrojenja/1001/checklist?id_polje=50001
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Request - Za uređaje bez polja:**
 ```http
-GET http://localhost:8080/api/v1/postrojenja/1001/checklist?id_polje=0
+GET https://elektropregled-api.onrender.com/api/v1/postrojenja/1001/checklist?id_polje=0
 Authorization: Bearer YOUR_TOKEN
 ```
 
@@ -261,7 +261,7 @@ Authorization: Bearer YOUR_TOKEN
 
 **Request:**
 ```http
-POST http://localhost:8080/api/v1/pregled/sync
+POST https://elektropregled-api.onrender.com/api/v1/pregled/sync
 Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN
 
@@ -372,29 +372,29 @@ Authorization: Bearer YOUR_TOKEN
 
 1. **Prijava:**
    ```http
-   POST http://localhost:8080/api/v1/auth/login
+   POST https://elektropregled-api.onrender.com/api/v1/auth/login
    ```
 
 2. **Pregled postrojenja:**
    ```http
-   GET http://localhost:8080/api/v1/postrojenja
+   GET https://elektropregled-api.onrender.com/api/v1/postrojenja
    ```
 
 3. **Odabir polja:**
    ```http
-   GET http://localhost:8080/api/v1/postrojenja/1001/polja
+   GET https://elektropregled-api.onrender.com/api/v1/postrojenja/1001/polja
    ```
 
 4. **Učitavanje checklistte:**
    ```http
-   GET http://localhost:8080/api/v1/postrojenja/1001/checklist?id_polje=50001
+   GET https://elektropregled-api.onrender.com/api/v1/postrojenja/1001/checklist?id_polje=50001
    ```
 
 5. **Popunjavanje vrijednosti (offline)**
 
 6. **Sinkronizacija:**
    ```http
-   POST http://localhost:8080/api/v1/pregled/sync
+   POST https://elektropregled-api.onrender.com/api/v1/pregled/sync
    ```
 
 ---
@@ -427,7 +427,7 @@ Authorization: Bearer YOUR_TOKEN
 
 ### Swagger UI
 ```
-http://localhost:8080/api/swagger-ui.html
+https://elektropregled-api.onrender.com/api/swagger-ui.html
 ```
 
 ### VS Code REST Client

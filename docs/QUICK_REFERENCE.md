@@ -2,7 +2,7 @@
 
 ## Base URL
 ```
-http://localhost:8080/api
+https://elektropregled-api.onrender.com/api
 ```
 
 ## Autentifikacija
@@ -246,7 +246,7 @@ Response: 200 OK
 
 ### Login
 ```http
-POST http://localhost:8080/api/v1/auth/login
+POST https://elektropregled-api.onrender.com/api/v1/auth/login
 Content-Type: application/json
 
 {
@@ -257,25 +257,25 @@ Content-Type: application/json
 
 ### Postrojenja
 ```http
-GET http://localhost:8080/api/v1/postrojenja
+GET https://elektropregled-api.onrender.com/api/v1/postrojenja
 Authorization: Bearer YOUR_TOKEN
 ```
 
 ### Polja
 ```http
-GET http://localhost:8080/api/v1/postrojenja/1001/polja
+GET https://elektropregled-api.onrender.com/api/v1/postrojenja/1001/polja
 Authorization: Bearer YOUR_TOKEN
 ```
 
 ### Checklist
 ```http
-GET http://localhost:8080/api/v1/postrojenja/1001/checklist?id_polje=50001
+GET https://elektropregled-api.onrender.com/api/v1/postrojenja/1001/checklist?id_polje=50001
 Authorization: Bearer YOUR_TOKEN
 ```
 
 ### Sync
 ```http
-POST http://localhost:8080/api/v1/pregled/sync
+POST https://elektropregled-api.onrender.com/api/v1/pregled/sync
 Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN
 
@@ -394,7 +394,7 @@ Authorization: Bearer YOUR_TOKEN
 ### Swagger UI
 Otvori preglednik i idi na:
 ```
-http://localhost:8080/api/swagger-ui.html
+https://elektropregled-api.onrender.com/api/swagger-ui.html
 ```
 Tu možeš direktno testirati sve endpointe preko web interfacea.
 
