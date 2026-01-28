@@ -36,6 +36,6 @@ public class AuthService {
         }
 
         String token = jwtProvider.generateToken(korisnik.getKorisnickoIme());
-        return new LoginResponse(token, "Bearer", jwtExpiration / 1000, korisnik.getKorisnickoIme());
+        return new LoginResponse(token, "Bearer", jwtExpiration / 1000, korisnik.getKorisnickoIme(), korisnik.getIdKorisnika());
     }
 }

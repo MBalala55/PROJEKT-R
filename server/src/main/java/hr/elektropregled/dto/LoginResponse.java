@@ -26,4 +26,8 @@ public class LoginResponse {
     @JsonProperty("username")
     @Schema(description = "Korisničko ime", example = "mmarkovic")
     private String username;
+
+    @JsonProperty("user_id")
+    @Schema(description = "ID korisnika", example = "1")
+    private Integer userId;
 }
