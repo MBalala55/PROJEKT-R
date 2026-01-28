@@ -16,13 +16,12 @@ class ViewModelFactory(private val app: ElektropregledApplication) : ViewModelPr
                 FacilityListViewModel(app.postrojenjeRepository) as T
             }
             modelClass.isAssignableFrom(FieldListViewModel::class.java) -> {
-                FieldListViewModel(app.postrojenjeRepository) as T
+                FieldListViewModel(app.postrojenjeRepository, app.pregledRepository) as T
             }
             modelClass.isAssignableFrom(ChecklistViewModel::class.java) -> {
                 ChecklistViewModel(
                     app.checklistRepository,
-                    app.pregledRepository,
-                    app.tokenStorage
+                    app.pregledRepository
                 ) as T
             }
             modelClass.isAssignableFrom(SyncViewModel::class.java) -> {

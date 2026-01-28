@@ -11,8 +11,16 @@ import com.example.elektropregled.R
 import com.example.elektropregled.data.api.dto.PoljeDto
 
 class FieldAdapter(
-    private val onItemClick: (PoljeDto) -> Unit
+    private val onItemClick: (PoljeDto) -> Unit,
+    private val postrojenjeId: Int = 0
 ) : ListAdapter<PoljeDto, FieldAdapter.ViewHolder>(DiffCallback()) {
+    
+    private var reviewed = setOf<Int>()
+    
+    fun setReviewedFields(fieldIds: Set<Int>) {
+        reviewed = fieldIds
+        notifyDataSetChanged()
+    }
     
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -22,17 +30,34 @@ class FieldAdapter(
     
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val field = getItem(position)
-        holder.bind(field, onItemClick)
+        // Ako je idPolje null, koristi 0 kao ključ
+        // ali za reviewed tracking trebamo -postrojenjeId
+        val reviewKey = if (field.idPolje == null) {
+            -postrojenjeId
+        } else {
+            field.idPolje
+        }
+        val isReviewed = reviewKey in reviewed
+        holder.bind(field, onItemClick, isReviewed)
     }
     
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val text1: TextView = itemView.findViewById(android.R.id.text1)
         private val text2: TextView = itemView.findViewById(android.R.id.text2)
         
-        fun bind(field: PoljeDto, onItemClick: (PoljeDto) -> Unit) {
+        fun bind(field: PoljeDto, onItemClick: (PoljeDto) -> Unit, isReviewed: Boolean) {
             text1.text = field.nazPolje
             val voltage = if (field.napRazina != null) "${field.napRazina} kV" else ""
             text2.text = "$voltage • ${itemView.context.getString(R.string.devices_count, field.brojUredaja)}"
+            
+            // Vizualni indikator pregledanog polja
+            if (isReviewed) {
+                text1.text = "✓ ${field.nazPolje}"
+                itemView.setBackgroundColor(itemView.context.getColor(android.R.color.holo_green_light))
+            } else {
+                // Vrati na originalnu boju
+                itemView.setBackgroundColor(itemView.context.getColor(android.R.color.transparent))
+            }
             
             itemView.setOnClickListener { onItemClick(field) }
         }

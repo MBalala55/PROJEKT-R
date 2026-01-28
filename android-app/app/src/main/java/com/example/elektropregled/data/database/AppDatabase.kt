@@ -50,6 +50,27 @@ abstract class AppDatabase : RoomDatabase() {
                             super.onCreate(db)
                             // Enable foreign keys
                             db.execSQL("PRAGMA foreign_keys = ON")
+                            
+                            // Load prepopulate SQL from assets (runs in Room background thread)
+                            try {
+                                android.util.Log.d("AppDatabase", "Starting database prepopulation...")
+                                val inputStream = context.assets.open("database/prepopulate.sql")
+                                val sqlStatements = inputStream.bufferedReader().use { it.readText() }
+                                
+                                var count = 0
+                                // Execute each SQL statement
+                                sqlStatements.split(";").forEach { statement ->
+                                    val trimmed = statement.trim()
+                                    if (trimmed.isNotEmpty() && !trimmed.startsWith("--") && !trimmed.startsWith("PRAGMA")) {
+                                        db.execSQL(trimmed)
+                                        count++
+                                    }
+                                }
+                                android.util.Log.d("AppDatabase", "Database prepopulation completed: $count statements executed")
+                            } catch (e: Exception) {
+                                android.util.Log.e("AppDatabase", "Error loading prepopulate data", e)
+                                e.printStackTrace()
+                            }
                         }
                         
                         override fun onOpen(db: SupportSQLiteDatabase) {

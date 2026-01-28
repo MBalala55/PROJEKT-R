@@ -23,9 +23,7 @@ class PregledRepository(
         pregled: PregledEntity,
         stavke: List<StavkaPregledaEntity>
     ): Long {
-        // Ensure all referenced entities exist before saving
-        ensureEntitiesExist(stavke)
-        
+        // Simply insert the pregled and stavke - entities already exist from loadChecklist
         val pregledId = pregledDao.insert(pregled)
         stavke.forEach { stavka ->
             stavkaDao.insert(stavka.copy(id_preg = pregledId.toInt()))

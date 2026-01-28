@@ -12,7 +12,9 @@ import com.example.elektropregled.ElektropregledApplication
 import com.example.elektropregled.R
 import com.example.elektropregled.databinding.FragmentChecklistBinding
 import com.example.elektropregled.ui.viewmodel.ChecklistViewModel
+import com.example.elektropregled.ui.viewmodel.FieldListViewModel
 import com.example.elektropregled.ui.viewmodel.ViewModelFactory
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class ChecklistFragment : Fragment() {
@@ -21,6 +23,10 @@ class ChecklistFragment : Fragment() {
     private val binding get() = _binding!!
     
     private val viewModel: ChecklistViewModel by activityViewModels {
+        ViewModelFactory(requireActivity().application as ElektropregledApplication)
+    }
+    
+    private val fieldListViewModel: FieldListViewModel by activityViewModels {
         ViewModelFactory(requireActivity().application as ElektropregledApplication)
     }
     
@@ -54,6 +60,9 @@ class ChecklistFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
+        // Register this ViewModel with the parent FieldListViewModel
+        fieldListViewModel.setChecklistViewModel(viewModel)
+        
         val postrojenjeId = arguments?.getInt(ARG_POSTROJENJE_ID) ?: return
         val poljeId = arguments?.getInt(ARG_POLJE_ID)
         val poljeName = arguments?.getString(ARG_POLJE_NAME) ?: ""
@@ -72,20 +81,55 @@ class ChecklistFragment : Fragment() {
         binding.checklistRecycler.layoutManager = LinearLayoutManager(requireContext())
         binding.checklistRecycler.adapter = adapter
         
+        // Next field button
+        binding.nextFieldButton.setOnClickListener {
+            // Validate all required parameters
+            val (isValid, errorMessage) = viewModel.validateAllRequiredParametersAreFilled()
+            if (!isValid) {
+                binding.errorText.text = errorMessage
+                binding.errorText.visibility = View.VISIBLE
+                
+                // Hide error message after 3 seconds
+                binding.errorText.postDelayed({
+                    binding.errorText.visibility = View.GONE
+                }, 3000)
+                
+                return@setOnClickListener
+            }
+            
+            // Mark field as reviewed and save
+            val poljeId = arguments?.getInt(ARG_POLJE_ID) ?: 0
+            val postrojenjeId = arguments?.getInt(ARG_POSTROJENJE_ID) ?: 0
+            
+            // Navigate back after validation passed
+            viewLifecycleOwner.lifecycleScope.launch {
+                // Spremi podatke prije navigacije
+                viewModel.saveFieldReview()
+                
+                // Označi polje kao pregledano
+                if (poljeId != 0) {
+                    // Uređaj u polju - koristi pozitivni ID polja
+                    fieldListViewModel.markFieldAsReviewed(poljeId)
+                } else {
+                    // Uređaj direktno na postrojenju (poljeId = 0) - koristi negativni ID postrojenja
+                    fieldListViewModel.markFieldAsReviewed(-postrojenjeId)
+                }
+                
+                // Small delay to let the UI update
+                delay(100)
+                requireActivity().onBackPressed()
+            }
+        }
+        
         // Start inspection
         viewModel.startInspection(postrojenjeId)
         
         // Load checklist
         viewModel.loadChecklist(postrojenjeId, if (poljeId == 0) null else poljeId)
         
-        binding.finishButton.setOnClickListener {
-            viewModel.saveInspection()
-        }
-        
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             viewModel.uiState.collect { state ->
                 binding.loadingProgress.visibility = if (state.isLoading) View.VISIBLE else View.GONE
-                binding.finishButton.isEnabled = !state.isLoading && !state.isSaving
                 
                 if (state.errorMessage != null) {
                     binding.errorText.text = state.errorMessage
@@ -96,11 +140,6 @@ class ChecklistFragment : Fragment() {
                 
                 if (state.uredaji.isNotEmpty()) {
                     adapter.submitList(state.uredaji)
-                }
-                
-                if (state.saveSuccess) {
-                    // Navigate back or show success message
-                    requireActivity().onBackPressed()
                 }
             }
         }

@@ -28,13 +28,6 @@
         android:layout_weight="1"
         android:padding="8dp" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/finish_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/finish_inspection"
-        android:layout_margin="16dp" />
-
     <TextView
         android:id="@+id/error_text"
         android:layout_width="match_parent"
@@ -44,5 +37,13 @@
         android:gravity="center"
         android:padding="16dp"
         android:visibility="gone" />
+
+    <Button
+        android:id="@+id/next_field_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pregledaj sljedeće polje"
+        android:layout_margin="8dp"
+        android:padding="16dp" />
 
 </LinearLayout>

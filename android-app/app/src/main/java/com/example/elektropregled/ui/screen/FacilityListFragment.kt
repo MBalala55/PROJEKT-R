@@ -38,6 +38,19 @@ class FacilityListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
+        // Display logged in username
+        val app = requireActivity().application as ElektropregledApplication
+        val username = app.tokenStorage.getUsername()
+        binding.usernameText.text = username ?: "Korisnik"
+        
+        // Setup logout button
+        binding.logoutButton.setOnClickListener {
+            app.tokenStorage.clearToken()
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, LoginFragment())
+                .commit()
+        }
+        
         adapter = FacilityAdapter { facility ->
             // Navigate to field list
             val fragment = FieldListFragment.newInstance(facility.idPostr, facility.nazPostr)

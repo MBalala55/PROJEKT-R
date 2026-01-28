@@ -4,30 +4,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.elektropregled.data.api.dto.ChecklistParametar
 import com.example.elektropregled.data.api.dto.ChecklistUredaj
-import com.example.elektropregled.data.database.AppDatabase
 import com.example.elektropregled.data.database.entity.PregledEntity
 import com.example.elektropregled.data.database.entity.StavkaPregledaEntity
 import com.example.elektropregled.data.repository.ChecklistRepository
 import com.example.elektropregled.data.repository.PregledRepository
-import com.example.elektropregled.data.TokenStorage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.UUID
 
 data class ChecklistUiState(
     val isLoading: Boolean = false,
     val uredaji: List<ChecklistUredaj> = emptyList(),
-    val errorMessage: String? = null,
-    val isSaving: Boolean = false,
-    val saveSuccess: Boolean = false
+    val errorMessage: String? = null
 )
 
 class ChecklistViewModel(
     private val checklistRepository: ChecklistRepository,
-    private val pregledRepository: PregledRepository,
-    private val tokenStorage: TokenStorage
+    private val pregledRepository: PregledRepository
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(ChecklistUiState())
@@ -80,6 +77,34 @@ class ChecklistViewModel(
         return parameterValues[key]
     }
     
+    fun validateAllRequiredParametersAreFilled(): Pair<Boolean, String?> {
+        // Check if all mandatory parameters are filled
+        for (uredaj in _uiState.value.uredaji) {
+            for (parametar in uredaj.parametri) {
+                if (parametar.obavezan) {
+                    val value = getParameterValue(uredaj.idUred, parametar.idParametra)
+                    
+                    when (parametar.tipPodataka) {
+                        "NUMERIC" -> {
+                            if (value == null || (value as? Double) == null) {
+                                return Pair(false, "Obavezno polje: ${parametar.nazParametra} (${uredaj.natpPlocica})")
+                            }
+                        }
+                        "TEXT" -> {
+                            if (value == null || (value as? String).isNullOrBlank()) {
+                                return Pair(false, "Obavezno polje: ${parametar.nazParametra} (${uredaj.natpPlocica})")
+                            }
+                        }
+                        "BOOLEAN" -> {
+                            // Boolean has default value, always valid
+                        }
+                    }
+                }
+            }
+        }
+        return Pair(true, null)
+    }
+    
     fun startInspection(postrojenjeId: Int, napomena: String? = null) {
         viewModelScope.launch {
             try {
@@ -99,96 +124,87 @@ class ChecklistViewModel(
             .find { it.id_preg == pregledId }
     }
     
-    fun saveInspection() {
-        val pregledId = currentPregledId ?: run {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "Pregled nije započet"
-            )
-            return
-        }
+    fun saveFieldReview() {
+        val pregledId = currentPregledId ?: return
         
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isSaving = true, errorMessage = null)
-            
             try {
-                val current = getCurrentPregled(pregledId)
-                if (current == null) {
-                    _uiState.value = _uiState.value.copy(
-                        isSaving = false,
-                        errorMessage = "Pregled nije pronađen"
-                    )
-                    return@launch
-                }
-                
-                val stavke = parameterValues.mapNotNull { (key, value) ->
-                    val (uredId, paramId) = key.split("-").map { it.toInt() }
-                    
-                    // Find parameter to get type
-                    val parametar = _uiState.value.uredaji
-                        .flatMap { it.parametri }
-                        .find { it.idParametra == paramId }
-                    
-                    if (parametar == null) return@mapNotNull null
-                    
-                    val now = java.time.LocalDateTime.now().toString()
-                    val lokalniId = UUID.randomUUID().toString()
-                    
-                    when (parametar.tipPodataka) {
-                        "BOOLEAN" -> {
-                            val boolValue = value as? Boolean ?: true
-                            StavkaPregledaEntity(
-                                lokalni_id = lokalniId,
-                                vrijednost_bool = if (boolValue) 1 else 0,
-                                vrijednost_num = null,
-                                vrijednost_txt = null,
-                                vrijeme_unosa = now,
-                                id_preg = pregledId,
-                                id_ured = uredId,
-                                id_parametra = paramId
-                            )
-                        }
-                        "NUMERIC" -> {
-                            val numValue = value as? Double
-                            if (numValue == null && parametar.obavezan) return@mapNotNull null
-                            StavkaPregledaEntity(
-                                lokalni_id = lokalniId,
-                                vrijednost_bool = null,
-                                vrijednost_num = numValue,
-                                vrijednost_txt = null,
-                                vrijeme_unosa = now,
-                                id_preg = pregledId,
-                                id_ured = uredId,
-                                id_parametra = paramId
-                            )
-                        }
-                        "TEXT" -> {
-                            val txtValue = value as? String
-                            if (txtValue.isNullOrBlank() && parametar.obavezan) return@mapNotNull null
-                            StavkaPregledaEntity(
-                                lokalni_id = lokalniId,
-                                vrijednost_bool = null,
-                                vrijednost_num = null,
-                                vrijednost_txt = txtValue,
-                                vrijeme_unosa = now,
-                                id_preg = pregledId,
-                                id_ured = uredId,
-                                id_parametra = paramId
-                            )
-                        }
-                        else -> null
+                withContext(Dispatchers.IO) {
+                    val current = getCurrentPregled(pregledId)
+                    if (current == null) {
+                        _uiState.value = _uiState.value.copy(
+                            errorMessage = "Pregled nije pronađen"
+                        )
+                        return@withContext
                     }
+                    
+                    val stavke = parameterValues.mapNotNull { (key, value) ->
+                        val parts = key.split("-")
+                        if (parts.size != 2) return@mapNotNull null
+                        
+                        val uredId = parts[0].toIntOrNull() ?: return@mapNotNull null
+                        val paramId = parts[1].toIntOrNull() ?: return@mapNotNull null
+                        
+                        // Find parameter to get type
+                        val parametar = _uiState.value.uredaji
+                            .flatMap { it.parametri }
+                            .find { it.idParametra == paramId }
+                        
+                        if (parametar == null) return@mapNotNull null
+                        
+                        val now = java.time.LocalDateTime.now().toString()
+                        val lokalniId = UUID.randomUUID().toString()
+                        
+                        when (parametar.tipPodataka) {
+                            "BOOLEAN" -> {
+                                val boolValue = value as? Boolean ?: true
+                                StavkaPregledaEntity(
+                                    lokalni_id = lokalniId,
+                                    vrijednost_bool = if (boolValue) 1 else 0,
+                                    vrijednost_num = null,
+                                    vrijednost_txt = null,
+                                    vrijeme_unosa = now,
+                                    id_preg = pregledId,
+                                    id_ured = uredId,
+                                    id_parametra = paramId
+                                )
+                            }
+                            "NUMERIC" -> {
+                                val numValue = value as? Double
+                                if (numValue == null && parametar.obavezan) return@mapNotNull null
+                                StavkaPregledaEntity(
+                                    lokalni_id = lokalniId,
+                                    vrijednost_bool = null,
+                                    vrijednost_num = numValue,
+                                    vrijednost_txt = null,
+                                    vrijeme_unosa = now,
+                                    id_preg = pregledId,
+                                    id_ured = uredId,
+                                    id_parametra = paramId
+                                )
+                            }
+                            "TEXT" -> {
+                                val txtValue = value as? String
+                                if (txtValue.isNullOrBlank() && parametar.obavezan) return@mapNotNull null
+                                StavkaPregledaEntity(
+                                    lokalni_id = lokalniId,
+                                    vrijednost_bool = null,
+                                    vrijednost_num = null,
+                                    vrijednost_txt = txtValue,
+                                    vrijeme_unosa = now,
+                                    id_preg = pregledId,
+                                    id_ured = uredId,
+                                    id_parametra = paramId
+                                )
+                            }
+                            else -> null
+                        }
+                    }
+                    
+                    pregledRepository.savePregledLocally(current, stavke)
                 }
-                
-                pregledRepository.savePregledLocally(current, stavke)
-                pregledRepository.finishPregled(pregledId)
-                
-                _uiState.value = _uiState.value.copy(
-                    isSaving = false,
-                    saveSuccess = true
-                )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    isSaving = false,
                     errorMessage = "Greška pri spremanju: ${e.message}"
                 )
             }

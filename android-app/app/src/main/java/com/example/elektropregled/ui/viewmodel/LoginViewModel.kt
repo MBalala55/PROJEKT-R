@@ -39,8 +39,8 @@ class LoginViewModel(
                 if (response.isSuccessful && response.body() != null) {
                     val loginResponse = response.body()!!
                     tokenStorage.saveToken(loginResponse.access_token, loginResponse.expires_in)
-                    // Note: User ID should come from backend, for now we'll need to get it from somewhere
-                    // For MVP, we can store username and fetch user info later if needed
+                    tokenStorage.saveUserId(loginResponse.user_id)
+                    tokenStorage.saveUsername(loginResponse.username)
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isSuccess = true

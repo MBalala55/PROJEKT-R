@@ -57,21 +57,29 @@ class FieldListFragment : Fragment() {
         
         binding.toolbar.title = "$postrojenjeName - ${getString(R.string.fields_title)}"
         
-        adapter = FieldAdapter { field ->
-            // Navigate to checklist
-            val fragment = ChecklistFragment.newInstance(postrojenjeId, field.idPolje, field.nazPolje)
-            requireActivity().supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, fragment)
-                .addToBackStack(null)
-                .commit()
-        }
+        adapter = FieldAdapter(
+            onItemClick = { field ->
+                // Ako je idPolje null, koristi 0 kao marker za "Direktno na postrojenju"
+                val poljeId = field.idPolje ?: 0
+                val fragment = ChecklistFragment.newInstance(postrojenjeId, poljeId, field.nazPolje)
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, fragment)
+                    .addToBackStack(null)
+                    .commit()
+            },
+            postrojenjeId = postrojenjeId
+        )
         
         binding.fieldsRecycler.layoutManager = LinearLayoutManager(requireContext())
         binding.fieldsRecycler.adapter = adapter
         
+        binding.finishInspectionButton.setOnClickListener {
+            viewModel.finishInspection()
+        }
+        
         viewModel.loadFields(postrojenjeId)
         
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             viewModel.uiState.collect { state ->
                 binding.loadingProgress.visibility = if (state.isLoading) View.VISIBLE else View.GONE
                 
@@ -82,6 +90,23 @@ class FieldListFragment : Fragment() {
                     binding.errorText.visibility = View.GONE
                 }
                 
+                // Update button text with progress
+                val totalFields = state.fields.size
+                val reviewedFields = state.reviewedFieldsCount
+                binding.finishInspectionButton.text = 
+                    "Završi pregled ($reviewedFields/$totalFields)"
+                
+                // Enable button only if all fields are reviewed
+                binding.finishInspectionButton.isEnabled = 
+                    totalFields > 0 && reviewedFields == totalFields && !state.isSaving
+                
+                if (state.saveSuccess) {
+                    viewModel.resetSaveSuccess()
+                    requireActivity().onBackPressed()
+                }
+                
+                // Update adapter with reviewed fields
+                adapter.setReviewedFields(state.reviewedFieldIds)
                 adapter.submitList(state.fields)
             }
         }

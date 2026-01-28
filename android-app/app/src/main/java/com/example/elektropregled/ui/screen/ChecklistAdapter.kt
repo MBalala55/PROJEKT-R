@@ -1,10 +1,14 @@
 package com.example.elektropregled.ui.screen
 
 import android.text.InputType
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -92,16 +96,33 @@ class ChecklistAdapter(
                 }
                 "NUMERIC" -> {
                     val inputLayout = TextInputLayout(context).apply {
-                        hint = "${parametar.nazParametra} (${parametar.mjernaJedinica})"
+                        boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
                         layoutParams = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
                         )
                     }
                     val editText = TextInputEditText(context).apply {
+                        hint = "${parametar.nazParametra} (${parametar.mjernaJedinica})"
                         inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
                         val currentValue = getValue(uredajId, parametar.idParametra) as? Double
                         setText(currentValue?.toString() ?: parametar.defaultVrijednostNum?.toString() ?: "")
+                        
+                        // Save value when user presses OK/Done on keyboard
+                        setOnEditorActionListener { view, actionId, event ->
+                            if (actionId == EditorInfo.IME_ACTION_DONE || 
+                                actionId == EditorInfo.IME_ACTION_NEXT ||
+                                event?.keyCode == KeyEvent.KEYCODE_ENTER) {
+                                // Hide keyboard
+                                val imm = context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                                imm.hideSoftInputFromWindow(view.windowToken, 0)
+                                clearFocus()
+                                true
+                            } else {
+                                false
+                            }
+                        }
+                        
                         setOnFocusChangeListener { _, hasFocus ->
                             if (!hasFocus) {
                                 val text = text?.toString()
@@ -130,16 +151,33 @@ class ChecklistAdapter(
                 }
                 "TEXT" -> {
                     val inputLayout = TextInputLayout(context).apply {
-                        hint = parametar.nazParametra
+                        boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
                         layoutParams = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
                         )
                     }
                     val editText = TextInputEditText(context).apply {
+                        hint = parametar.nazParametra
                         inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
                         val currentValue = getValue(uredajId, parametar.idParametra) as? String
                         setText(currentValue ?: parametar.defaultVrijednostTxt ?: "")
+                        
+                        // Save value when user presses OK/Done on keyboard
+                        setOnEditorActionListener { view, actionId, event ->
+                            if (actionId == EditorInfo.IME_ACTION_DONE || 
+                                actionId == EditorInfo.IME_ACTION_NEXT ||
+                                event?.keyCode == KeyEvent.KEYCODE_ENTER) {
+                                // Hide keyboard
+                                val imm = context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                                imm.hideSoftInputFromWindow(view.windowToken, 0)
+                                clearFocus()
+                                true
+                            } else {
+                                false
+                            }
+                        }
+                        
                         setOnFocusChangeListener { _, hasFocus ->
                             if (!hasFocus) {
                                 onValueChanged(uredajId, parametar.idParametra, text?.toString())

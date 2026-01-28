@@ -13,6 +13,8 @@ interface TokenStorage {
     fun getUserId(): Int?
     fun saveUserId(userId: Int)
     fun clearUserId()
+    fun getUsername(): String?
+    fun saveUsername(username: String)
 }
 
 class EncryptedTokenStorage(context: Context) : TokenStorage {
@@ -58,6 +60,8 @@ class EncryptedTokenStorage(context: Context) : TokenStorage {
             remove("access_token")
             remove("token_created_at")
             remove("expires_in")
+            remove("user_id")
+            remove("username")
             apply()
         }
     }
@@ -73,5 +77,13 @@ class EncryptedTokenStorage(context: Context) : TokenStorage {
     
     override fun clearUserId() {
         encryptedSharedPreferences.edit().remove("user_id").apply()
+    }
+    
+    override fun getUsername(): String? {
+        return encryptedSharedPreferences.getString("username", null)
+    }
+    
+    override fun saveUsername(username: String) {
+        encryptedSharedPreferences.edit().putString("username", username).apply()
     }
 }
