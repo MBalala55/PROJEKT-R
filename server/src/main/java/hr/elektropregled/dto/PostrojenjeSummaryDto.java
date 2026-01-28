@@ -28,4 +28,7 @@ public class PostrojenjeSummaryDto {
 
     @Schema(description = "Datum/vrijeme zadnjeg pregleda (kraj, ako postoji; inače početak)")
     private LocalDateTime zadnjiPregled;
+
+    @Schema(description = "Korisničko ime korisnika koji je obavio zadnji pregled")
+    private String zadnjiKorisnik;
 }

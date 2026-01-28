@@ -17,10 +17,14 @@ public interface PregledRepository extends JpaRepository<Pregled, Integer> {
         Integer getIdPostr();
         Long getTotal();
         LocalDateTime getLastDate();
+        String getZadnjiKorisnik();
     }
 
     @Query("SELECT p.postrojenje.idPostr as idPostr, COUNT(p.idPreg) as total, " +
-            "MAX(COALESCE(p.kraj, p.pocetak, p.createdAt)) as lastDate " +
+            "MAX(COALESCE(p.kraj, p.pocetak, p.createdAt)) as lastDate, " +
+            "(SELECT k.korisnickoIme FROM Pregled p2 JOIN p2.korisnik k " +
+            "WHERE p2.postrojenje.idPostr = p.postrojenje.idPostr " +
+            "ORDER BY COALESCE(p2.kraj, p2.pocetak, p2.createdAt) DESC LIMIT 1) as zadnjiKorisnik " +
             "FROM Pregled p GROUP BY p.postrojenje.idPostr")
     java.util.List<PostrojenjePregledAgg> aggregateByPostrojenje();
 }

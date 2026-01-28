@@ -58,13 +58,15 @@ public class PostrojenjeService {
                     PregledRepository.PostrojenjePregledAgg agg = aggByPostrojenje.get(p.getIdPostr());
                     Long total = agg != null ? agg.getTotal() : 0L;
                     LocalDateTime lastDate = agg != null ? agg.getLastDate() : null;
+                    String lastUser = agg != null ? agg.getZadnjiKorisnik() : null;
                     return new PostrojenjeSummaryDto(
                             p.getIdPostr(),
                             p.getNazPostr(),
                             p.getLokacija(),
                             p.getOznVrPostr(),
                             total,
-                            lastDate
+                            lastDate,
+                            lastUser
                     );
                 })
                 .toList();
