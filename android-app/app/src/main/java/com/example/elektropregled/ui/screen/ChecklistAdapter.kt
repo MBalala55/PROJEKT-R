@@ -67,9 +67,18 @@ class ChecklistAdapter(
                 }
             }
             
+            // Apply font size preference
+            val prefs = context.getSharedPreferences("theme_prefs", android.content.Context.MODE_PRIVATE)
+            val fontSize = prefs.getInt("font_size", 0)
+            val multiplier = when (fontSize) {
+                1 -> 1.2f
+                2 -> 1.4f
+                else -> 1.0f
+            }
+            
             val nameText = TextView(context).apply {
                 text = parametar.nazParametra
-                textSize = 16f
+                textSize = 16f * multiplier
                 setTypeface(null, android.graphics.Typeface.BOLD)
             }
             layout.addView(nameText)
@@ -77,8 +86,9 @@ class ChecklistAdapter(
             if (parametar.opis != null) {
                 val descText = TextView(context).apply {
                     text = parametar.opis
-                    textSize = 12f
+                    textSize = 12f * multiplier
                     setTextColor(context.getColor(android.R.color.darker_gray))
+                    setTypeface(null, android.graphics.Typeface.BOLD)
                 }
                 layout.addView(descText)
             }

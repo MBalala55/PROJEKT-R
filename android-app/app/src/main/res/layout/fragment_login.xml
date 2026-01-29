@@ -16,10 +16,14 @@
         android:layout_marginBottom="32dp" />
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:hint="@string/username">
+        android:hint="@string/username"
+        android:textColorHint="?attr/colorOnSurfaceVariant"
+        app:hintTextColor="?attr/colorOnSurfaceVariant">
+
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/username_edit"
             android:layout_width="match_parent"
@@ -29,11 +33,14 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:hint="@string/password"
-        app:passwordToggleEnabled="true">
+        android:textColorHint="?attr/colorOnSurfaceVariant"
+        app:passwordToggleEnabled="true"
+        app:hintTextColor="?attr/colorOnSurfaceVariant">
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/password_edit"
             android:layout_width="match_parent"
@@ -44,10 +51,11 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/login_button"
-        android:layout_width="match_parent"
+        android:layout_width="363dp"
         android:layout_height="wrap_content"
-        android:text="@string/login_button"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp"
+        android:text="@string/login_button" />
+        
 
     <ProgressBar
         android:id="@+id/loading_progress"
@@ -59,7 +67,7 @@
         android:id="@+id/error_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/failed_red"
+        android:textColor="?attr/colorError"
         android:textSize="14sp"
         android:gravity="center"
         android:visibility="gone" />

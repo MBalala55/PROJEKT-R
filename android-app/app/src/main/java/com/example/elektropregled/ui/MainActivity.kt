@@ -1,15 +1,12 @@
 package com.example.elektropregled.ui
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import com.example.elektropregled.ElektropregledApplication
 import com.example.elektropregled.R
 import com.example.elektropregled.data.TokenStorage
 import com.example.elektropregled.ui.screen.LoginFragment
 import com.example.elektropregled.ui.screen.FacilityListFragment
-import com.example.elektropregled.ui.viewmodel.ViewModelFactory
 
 class MainActivity : AppCompatActivity() {
     
@@ -17,6 +14,16 @@ class MainActivity : AppCompatActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Apply saved theme before setting content view
+        val prefs = getSharedPreferences("theme_prefs", MODE_PRIVATE)
+        val isDarkTheme = prefs.getBoolean("is_dark_theme", false)
+        if (isDarkTheme) {
+            setTheme(R.style.Theme_Elektropregled_Dark)
+        } else {
+            setTheme(R.style.Theme_Elektropregled)
+        }
+        
         setContentView(R.layout.activity_main)
         
         tokenStorage = (application as ElektropregledApplication).tokenStorage

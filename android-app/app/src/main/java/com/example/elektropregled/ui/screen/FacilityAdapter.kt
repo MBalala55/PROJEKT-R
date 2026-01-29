@@ -58,10 +58,34 @@ class FacilityAdapter(
             val userInfo = if (facility.zadnjiKorisnik != null) " • ${facility.zadnjiKorisnik}" else ""
             text2.text = "$location • $lastInspection$userInfo"
             
-            if (isOverdue) {
-                text1.setTextColor(ContextCompat.getColor(itemView.context, R.color.overdue_red))
+            // Apply font size preference and get theme preference
+            val prefs = itemView.context.getSharedPreferences("theme_prefs", android.content.Context.MODE_PRIVATE)
+            val fontSizeIndex = prefs.getInt("font_size", 0)
+            val isDarkTheme = prefs.getBoolean("is_dark_theme", false)
+            val baseSizeText1 = 16f
+            val baseSizeText2 = 14f
+            val multiplier = when (fontSizeIndex) {
+                0 -> 1.0f
+                1 -> 1.2f
+                else -> 1.4f
+            }
+            text1.textSize = baseSizeText1 * multiplier
+            text1.setTypeface(null, android.graphics.Typeface.BOLD)
+            text2.textSize = baseSizeText2 * multiplier
+            text2.setTypeface(null, android.graphics.Typeface.BOLD)
+            
+            val nameColor = if (isDarkTheme) {
+                ContextCompat.getColor(itemView.context, android.R.color.white)
             } else {
-                text1.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
+                ContextCompat.getColor(itemView.context, android.R.color.darker_gray)
+            }
+            
+            if (isOverdue) {
+                text1.setTextColor(nameColor)
+                text2.setTextColor(ContextCompat.getColor(itemView.context, R.color.overdue_red))
+            } else {
+                text1.setTextColor(nameColor)
+                text2.setTextColor(ContextCompat.getColor(itemView.context, R.color.synced_green))
             }
             
             itemView.setOnClickListener { onItemClick(facility) }

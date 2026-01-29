@@ -221,6 +221,24 @@ class PregledRepository(
                     failedCount++
                     errorMessage = errorBody
                 }
+            } catch (e: java.net.SocketTimeoutException) {
+                pregledDao.update(
+                    pregled.copy(
+                        status_sinkronizacije = "PENDING",
+                        sync_error = "Server timeout - pokušaj kasnije"
+                    )
+                )
+                failedCount++
+                errorMessage = "Server ne odgovara (timeout)"
+            } catch (e: java.net.ConnectException) {
+                pregledDao.update(
+                    pregled.copy(
+                        status_sinkronizacije = "PENDING",
+                        sync_error = "Nemoguća konekcija - pokušaj kasnije"
+                    )
+                )
+                failedCount++
+                errorMessage = "Nemoguća konekcija na server"
             } catch (e: Exception) {
                 pregledDao.update(
                     pregled.copy(

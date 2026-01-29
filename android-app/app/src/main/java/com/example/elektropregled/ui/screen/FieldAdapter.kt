@@ -46,9 +46,23 @@ class FieldAdapter(
         private val text2: TextView = itemView.findViewById(android.R.id.text2)
         
         fun bind(field: PoljeDto, onItemClick: (PoljeDto) -> Unit, isReviewed: Boolean) {
+            // Apply font size preference
+            val prefs = itemView.context.getSharedPreferences("theme_prefs", android.content.Context.MODE_PRIVATE)
+            val fontSize = prefs.getInt("font_size", 0)
+            val multiplier = when (fontSize) {
+                1 -> 1.2f
+                2 -> 1.4f
+                else -> 1.0f
+            }
+            
             text1.text = field.nazPolje
+            text1.textSize = 16f * multiplier
+            text1.setTypeface(null, android.graphics.Typeface.BOLD)
+            
             val voltage = if (field.napRazina != null) "${field.napRazina} kV" else ""
             text2.text = "$voltage • ${itemView.context.getString(R.string.devices_count, field.brojUredaja)}"
+            text2.textSize = 14f * multiplier
+            text2.setTypeface(null, android.graphics.Typeface.BOLD)
             
             // Vizualni indikator pregledanog polja
             if (isReviewed) {

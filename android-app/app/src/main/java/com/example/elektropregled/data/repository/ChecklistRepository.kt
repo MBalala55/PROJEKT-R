@@ -34,8 +34,12 @@ class ChecklistRepository(
             } else {
                 Result.failure(Exception("Greška pri učitavanju checklistte: ${response.code()}"))
             }
+        } catch (e: java.net.SocketTimeoutException) {
+            Result.failure(Exception("Server timeout - provjerite internet konekciju", e))
+        } catch (e: java.net.ConnectException) {
+            Result.failure(Exception("Nemogućo se povezati - server je možda odsutan", e))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("Greška pri učitavanju checklistte: ${e.message}", e))
         }
     }
     

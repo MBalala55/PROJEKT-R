@@ -58,9 +58,15 @@ class LoginViewModel(
                 }
             } catch (e: Exception) {
                 e.printStackTrace() // Log the full exception
+                val errorMsg = when (e) {
+                    is java.net.SocketTimeoutException -> "Server ne odgovara (timeout). Provjerite internet konekciju."
+                    is java.net.ConnectException -> "Nemogućo se povezati na server. Server je možda odsutan."
+                    is java.io.IOException -> "Greška pri komunikaciji sa serverom: ${e.message}"
+                    else -> "Greška pri prijavi: ${e.message}"
+                }
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    errorMessage = "Greška pri prijavi: ${e.message ?: e.javaClass.simpleName}"
+                    errorMessage = errorMsg
                 )
             }
         }

@@ -41,8 +41,12 @@ class PostrojenjeRepository(
             } else {
                 Result.failure(Exception("Greška pri učitavanju postrojenja: ${response.code()}"))
             }
+        } catch (e: java.net.SocketTimeoutException) {
+            Result.failure(Exception("Server timeout - provjerite internet konekciju", e))
+        } catch (e: java.net.ConnectException) {
+            Result.failure(Exception("Nemogućo se povezati - server je možda odsutan", e))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("Greška pri učitavanju postrojenja: ${e.message}", e))
         }
     }
     
@@ -79,8 +83,12 @@ class PostrojenjeRepository(
             } else {
                 Result.failure(Exception("Greška pri učitavanju polja: ${response.code()}"))
             }
+        } catch (e: java.net.SocketTimeoutException) {
+            Result.failure(Exception("Server timeout - provjerite internet konekciju", e))
+        } catch (e: java.net.ConnectException) {
+            Result.failure(Exception("Nemogućo se povezati - server je možda odsutan", e))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("Greška pri učitavanju polja: ${e.message}", e))
         }
     }
 }
