@@ -134,13 +134,25 @@ class PregledRepository(
     
     // Sync operations
     suspend fun syncPregledi(): SyncResult {
+        android.util.Log.d("PregledRepository", "syncPregledi pozvan")
+        
         val token = tokenStorage.getToken()
+        android.util.Log.d("PregledRepository", "Token: ${if (token != null) "postoji" else "null"}, valjan: ${tokenStorage.isTokenValid()}")
+        
         if (token == null || !tokenStorage.isTokenValid()) {
+            android.util.Log.d("PregledRepository", "Token nije valjan, vraćam grešku")
             return SyncResult.Error("Token nije valjan. Molimo se ponovno prijavite.")
         }
         
+        // Clean up empty pregledi before sync
+        android.util.Log.d("PregledRepository", "Čistim prazne preglede...")
+        cleanupEmptyPregledi()
+        
         val pendingPregledi = pregledDao.getPendingPregledi()
+        android.util.Log.d("PregledRepository", "Pending pregledi: ${pendingPregledi.size}")
+        
         if (pendingPregledi.isEmpty()) {
+            android.util.Log.d("PregledRepository", "Nema pending pregleda za sync")
             return SyncResult.Success(0, 0, 0)
         }
         
@@ -154,6 +166,12 @@ class PregledRepository(
                 pregledDao.updateStatus(pregled.id_preg.toInt(), "SYNCING")
                 
                 val stavke = stavkaDao.getStavkeByPregledSuspend(pregled.id_preg.toInt())
+                
+                // Skip pregledi with no stavke - they are incomplete/empty
+                if (stavke.isEmpty()) {
+                    pregledDao.updateStatus(pregled.id_preg.toInt(), "PENDING")
+                    continue
+                }
                 
                 val syncRequest = SyncRequest(
                     pregled = PregledRequest(
@@ -187,7 +205,7 @@ class PregledRepository(
                     pregledDao.updateServerId(pregled.lokalni_id, syncResponse.serverPregledId.toInt())
                     
                     // Update stavke with server IDs
-                    syncResponse.idMappings.stavke.forEach { mapping ->
+                    syncResponse.idMappings?.stavke?.forEach { mapping ->
                         stavkaDao.updateServerId(mapping.lokalniId, mapping.serverId.toInt())
                     }
                     
@@ -302,6 +320,23 @@ class PregledRepository(
         if (pregled != null) {
             val now = java.time.LocalDateTime.now().toString()
             pregledDao.update(pregled.copy(kraj = now))
+        }
+    }
+    
+    suspend fun cleanupEmptyPregledi() {
+        android.util.Log.d("PregledRepository", "cleanupEmptyPregledi pozvan")
+        val pendingPregledi = pregledDao.getPendingPregledi()
+        android.util.Log.d("PregledRepository", "Pending pregledi za cleanup: ${pendingPregledi.size}")
+        
+        for (pregled in pendingPregledi) {
+            val stavke = stavkaDao.getStavkeByPregledSuspend(pregled.id_preg.toInt())
+            android.util.Log.d("PregledRepository", "Pregled ${pregled.id_preg} ima ${stavke.size} stavki")
+            
+            if (stavke.isEmpty()) {
+                android.util.Log.d("PregledRepository", "Brišem prazan pregled ${pregled.id_preg}")
+                // Delete pregled with no stavke
+                pregledDao.delete(pregled)
+            }
         }
     }
 }

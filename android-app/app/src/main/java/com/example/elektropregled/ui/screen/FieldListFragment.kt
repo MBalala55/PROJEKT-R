@@ -96,6 +96,9 @@ class FieldListFragment : Fragment() {
                 binding.finishInspectionButton.text = 
                     "Završi pregled ($reviewedFields/$totalFields)"
                 
+                // DEBUG: Log button state
+                android.util.Log.d("FieldListFragment", "Button state: totalFields=$totalFields, reviewedFields=$reviewedFields, isSaving=${state.isSaving}, enabled=${totalFields > 0 && reviewedFields == totalFields && !state.isSaving}")
+                
                 // Enable button only if all fields are reviewed
                 binding.finishInspectionButton.isEnabled = 
                     totalFields > 0 && reviewedFields == totalFields && !state.isSaving

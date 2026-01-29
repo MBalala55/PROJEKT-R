@@ -54,7 +54,8 @@ Response: 200 OK
     "lokacija": "Zagreb",
     "oznVrPostr": "TS",
     "totalPregleda": 5,
-    "zadnjiPregled": "2026-01-20T14:30:00"
+    "zadnjiPregled": "2026-01-20T14:30:00",
+    "zadnjiKorisnik": "mmarkovic"
   },
   ...
 ]

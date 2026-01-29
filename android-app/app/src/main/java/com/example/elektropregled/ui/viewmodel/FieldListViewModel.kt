@@ -40,9 +40,16 @@ class FieldListViewModel(
         this.checklistViewModel = viewModel
     }
     
+    fun getCurrentPregledId(): Int? {
+        return currentPregledId
+    }
+    
     fun loadFields(postrojenjeId: Int) {
+        android.util.Log.d("FieldListViewModel", "loadFields called with postrojenjeId=$postrojenjeId, current=$currentPostrojenjeId, currentPregledId=$currentPregledId")
+        
         // Don't reload if already loaded for the same facility
         if (currentPostrojenjeId == postrojenjeId && _uiState.value.fields.isNotEmpty()) {
+            android.util.Log.d("FieldListViewModel", "Skipping reload for same facility")
             return
         }
         
@@ -52,13 +59,16 @@ class FieldListViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             
-            // Start inspection for this facility
-            val pregled = pregledRepository.createPregled(postrojenjeId, null)
-            currentPregledId = pregled.id_preg
+            // Start inspection for this facility ONLY if we don't already have one
+            if (currentPregledId == null || currentPostrojenjeId != postrojenjeId) {
+                val pregled = pregledRepository.createPregled(postrojenjeId, null)
+                currentPregledId = pregled.id_preg
+            }
             
             repository.getPolja(postrojenjeId)
                 .onSuccess { fields ->
                     totalFieldsCount = fields.size
+                    android.util.Log.d("FieldListViewModel", "Polja učitana: totalFieldsCount=$totalFieldsCount, polja=${fields.map { "${it.idPolje}:${it.nazPolje}" }}")
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         fields = fields,
@@ -66,6 +76,7 @@ class FieldListViewModel(
                     )
                 }
                 .onFailure { error ->
+                    android.util.Log.d("FieldListViewModel", "Greška pri učitavanju polja: ${error.message}")
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         errorMessage = error.message ?: "Greška pri učitavanju polja"
@@ -85,12 +96,15 @@ class FieldListViewModel(
     }
     
     fun markFieldAsReviewed(fieldId: Int) {
+        android.util.Log.d("FieldListViewModel", "markFieldAsReviewed called with fieldId=$fieldId, already counted=${countedFieldIds.contains(fieldId)}")
+        
         reviewedFieldIds.add(fieldId)
         
         // Povećaj brojač samo ako je prvi put da se polje pregledava
         if (!countedFieldIds.contains(fieldId)) {
             countedFieldIds.add(fieldId)
             val current = _uiState.value.reviewedFieldsCount + 1
+            android.util.Log.d("FieldListViewModel", "Incrementing count to $current")
             _uiState.value = _uiState.value.copy(
                 reviewedFieldsCount = current,
                 reviewedFieldIds = reviewedFieldIds.toSet()
@@ -102,7 +116,10 @@ class FieldListViewModel(
     }
     
     fun finishInspection() {
+        android.util.Log.d("FieldListViewModel", "finishInspection called, currentPregledId=$currentPregledId")
+        
         val pregledId = currentPregledId ?: run {
+            android.util.Log.d("FieldListViewModel", "Pregled nije započet!")
             _uiState.value = _uiState.value.copy(
                 errorMessage = "Pregled nije započet"
             )
@@ -113,26 +130,46 @@ class FieldListViewModel(
             _uiState.value = _uiState.value.copy(isSaving = true, errorMessage = null)
             
             try {
+                android.util.Log.d("FieldListViewModel", "Spremam zadnje polje...")
                 // Save the last field review before finishing
                 checklistViewModel?.saveFieldReview()
                 
+                android.util.Log.d("FieldListViewModel", "Završavam pregled ID: $pregledId")
                 // Mark inspection as finished locally
                 pregledRepository.finishPregled(pregledId)
                 
+                android.util.Log.d("FieldListViewModel", "Pokrećem sinkronizaciju...")
                 // Sync to server
                 val syncResult = pregledRepository.syncPregledi()
+                android.util.Log.d("FieldListViewModel", "Sync rezultat: $syncResult")
                 
                 when (syncResult) {
                     is SyncResult.Success -> {
+                        android.util.Log.d("FieldListViewModel", "Sync uspješan, resetiram currentPregledId")
+                        // Reset pregled state after successful sync
+                        currentPregledId = null
+                        reviewedFieldIds.clear()
+                        countedFieldIds.clear()
+                        
                         _uiState.value = _uiState.value.copy(
                             isSaving = false,
-                            saveSuccess = true
+                            saveSuccess = true,
+                            reviewedFieldsCount = 0,
+                            reviewedFieldIds = emptySet()
                         )
                     }
                     is SyncResult.Error -> {
+                        android.util.Log.d("FieldListViewModel", "Sync neuspješan: ${syncResult.message}, resetiram currentPregledId")
+                        // Reset pregled state even on error so user can start fresh
+                        currentPregledId = null
+                        reviewedFieldIds.clear()
+                        countedFieldIds.clear()
+                        
                         _uiState.value = _uiState.value.copy(
                             isSaving = false,
-                            errorMessage = "Greška pri sinhronizaciji: ${syncResult.message}"
+                            errorMessage = "Greška pri sinhronizaciji: ${syncResult.message}",
+                            reviewedFieldsCount = 0,
+                            reviewedFieldIds = emptySet()
                         )
                     }
                 }

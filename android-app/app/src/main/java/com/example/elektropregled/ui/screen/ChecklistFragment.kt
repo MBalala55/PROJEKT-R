@@ -121,8 +121,14 @@ class ChecklistFragment : Fragment() {
             }
         }
         
-        // Start inspection
-        viewModel.startInspection(postrojenjeId)
+        // Use existing pregled from FieldListViewModel instead of creating a new one
+        val pregledId = fieldListViewModel.getCurrentPregledId()
+        if (pregledId != null) {
+            viewModel.setPregledId(pregledId)
+        } else {
+            // Fallback: create new pregled only if FieldListViewModel doesn't have one
+            viewModel.startInspection(postrojenjeId)
+        }
         
         // Load checklist
         viewModel.loadChecklist(postrojenjeId, if (poljeId == 0) null else poljeId)

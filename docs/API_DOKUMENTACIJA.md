@@ -75,7 +75,8 @@ Authorization: Bearer YOUR_TOKEN
     "lokacija": "Zagreb",
     "oznVrPostr": "TS",
     "totalPregleda": 5,
-    "zadnjiPregled": "2026-01-20T14:30:00"
+    "zadnjiPregled": "2026-01-20T14:30:00",
+    "zadnjiKorisnik": "mmarkovic"
   },
   {
     "idPostr": 1002,
@@ -83,7 +84,8 @@ Authorization: Bearer YOUR_TOKEN
     "lokacija": "Split",
     "oznVrPostr": "TS",
     "totalPregleda": 3,
-    "zadnjiPregled": "2026-01-18T10:15:00"
+    "zadnjiPregled": "2026-01-18T10:15:00",
+    "zadnjiKorisnik": "pkralj"
   }
 ]
 ```
@@ -95,6 +97,7 @@ Authorization: Bearer YOUR_TOKEN
 - `oznVrPostr`: Oznaka vrste postrojenja (TS = Transformatorska stanica)
 - `totalPregleda`: Ukupan broj obavljenih pregleda
 - `zadnjiPregled`: Datum/vrijeme zadnjeg pregleda (null ako nema pregleda)
+- `zadnjiKorisnik`: Korisničko ime korisnika koji je obavio zadnji pregled (null ako nema pregleda)
 
 **Greške:**
 - **401 Unauthorized** - Neispravan ili nedostaje JWT token

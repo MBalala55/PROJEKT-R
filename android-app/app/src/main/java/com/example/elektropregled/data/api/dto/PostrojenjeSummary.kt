@@ -6,5 +6,6 @@ data class PostrojenjeSummary(
     val lokacija: String?,
     val oznVrPostr: String,
     val totalPregleda: Int,
-    val zadnjiPregled: String? // ISO 8601 format
+    val zadnjiPregled: String?, // ISO 8601 format
+    val zadnjiKorisnik: String? // Korisničko ime korisnika koji je obavio zadnji pregled
 )

@@ -33,6 +33,10 @@ class ChecklistViewModel(
     private var currentPregledId: Int? = null
     private val parameterValues = mutableMapOf<String, Any?>() // Key: "uredId-paramId", Value: actual value
     
+    fun setPregledId(pregledId: Int) {
+        currentPregledId = pregledId
+    }
+    
     fun loadChecklist(postrojenjeId: Int, poljeId: Int?) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)

@@ -55,12 +55,13 @@ class FacilityAdapter(
                     LocalDateTime.now()
                 ) >= 1
             
-            text2.text = "$location • $lastInspection"
+            val userInfo = if (facility.zadnjiKorisnik != null) " • ${facility.zadnjiKorisnik}" else ""
+            text2.text = "$location • $lastInspection$userInfo"
             
             if (isOverdue) {
                 text1.setTextColor(ContextCompat.getColor(itemView.context, R.color.overdue_red))
             } else {
-                text1.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.primary_text_light))
+                text1.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
             }
             
             itemView.setOnClickListener { onItemClick(facility) }
