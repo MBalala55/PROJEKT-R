@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -49,14 +50,6 @@ class FacilityListFragment : Fragment() {
         val username = app.tokenStorage.getUsername()
         binding.usernameText.text = username ?: "Korisnik"
         
-        // Setup logout button
-        binding.logoutButton.setOnClickListener {
-            app.tokenStorage.clearToken()
-            requireActivity().supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, LoginFragment())
-                .commit()
-        }
-        
         // Setup menu button
         binding.menuButton.setOnClickListener {
             showMenu(binding.menuButton)
@@ -65,13 +58,18 @@ class FacilityListFragment : Fragment() {
         // Setup sort buttons
         binding.sortAbcButton.setOnClickListener {
             currentSort = "name"
+            updateSortButtonStyles()
             applySortToList()
         }
         
         binding.sortDateButton.setOnClickListener {
             currentSort = "date"
+            updateSortButtonStyles()
             applySortToList()
         }
+        
+        // Initialize button styles
+        updateSortButtonStyles()
         
         adapter = FacilityAdapter { facility ->
             // Navigate to field list
@@ -123,6 +121,32 @@ class FacilityListFragment : Fragment() {
         adapter.submitList(sorted)
     }
     
+    private fun updateSortButtonStyles() {
+        if (currentSort == "date") {
+            // DATUM is active (white pill with purple text)
+            binding.sortDateButton.apply {
+                background = ContextCompat.getDrawable(requireContext(), R.drawable.active_button_background)
+                setTextColor(ContextCompat.getColor(requireContext(), R.color.purple_700))
+            }
+            // ABECEDNO is inactive (white text on purple bg)
+            binding.sortAbcButton.apply {
+                background = ContextCompat.getDrawable(requireContext(), R.drawable.inactive_button_background)
+                setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white))
+            }
+        } else {
+            // ABECEDNO is active (white pill with purple text)
+            binding.sortAbcButton.apply {
+                background = ContextCompat.getDrawable(requireContext(), R.drawable.active_button_background)
+                setTextColor(ContextCompat.getColor(requireContext(), R.color.purple_700))
+            }
+            // DATUM is inactive (white text on purple bg)
+            binding.sortDateButton.apply {
+                background = ContextCompat.getDrawable(requireContext(), R.drawable.inactive_button_background)
+                setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white))
+            }
+        }
+    }
+    
     private fun toggleTheme() {
         val prefs = requireContext().getSharedPreferences("theme_prefs", android.content.Context.MODE_PRIVATE)
         val isDarkTheme = prefs.getBoolean("is_dark_theme", false)
@@ -149,6 +173,13 @@ class FacilityListFragment : Fragment() {
     private fun showMenu(view: View) {
         val popup = PopupMenu(requireContext(), view)
         popup.menuInflater.inflate(R.menu.menu_facility_list, popup.menu)
+        
+        // Update theme button text based on current theme
+        val prefs = requireContext().getSharedPreferences("theme_prefs", android.content.Context.MODE_PRIVATE)
+        val isDarkTheme = prefs.getBoolean("is_dark_theme", false)
+        val themeMenuTitle = if (isDarkTheme) "Light Mode" else "Dark Mode"
+        popup.menu.findItem(R.id.menu_theme).title = themeMenuTitle
+        
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.menu_theme -> {
@@ -157,6 +188,14 @@ class FacilityListFragment : Fragment() {
                 }
                 R.id.menu_font_size -> {
                     toggleFontSize()
+                    true
+                }
+                R.id.menu_logout -> {
+                    val app = requireActivity().application as ElektropregledApplication
+                    app.tokenStorage.clearToken()
+                    requireActivity().supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, LoginFragment())
+                        .commit()
                     true
                 }
                 else -> false

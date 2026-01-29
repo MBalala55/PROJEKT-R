@@ -20,7 +20,7 @@ class FacilityAdapter(
     
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(android.R.layout.simple_list_item_2, parent, false)
+            .inflate(R.layout.facility_list_item, parent, false)
         return ViewHolder(view)
     }
     
@@ -77,7 +77,7 @@ class FacilityAdapter(
             val nameColor = if (isDarkTheme) {
                 ContextCompat.getColor(itemView.context, android.R.color.white)
             } else {
-                ContextCompat.getColor(itemView.context, android.R.color.darker_gray)
+                ContextCompat.getColor(itemView.context, R.color.very_dark_grey)
             }
             
             if (isOverdue) {
