@@ -7,8 +7,9 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFF</color>
+    <color name="very_dark_grey">#FF333333</color>
     <color name="overdue_red">#FFFF5252</color>
-    <color name="synced_green">#FF4CAF50</color>
+    <color name="synced_green">#009E05</color>
     <color name="pending_orange">#FFFF9800</color>
     <color name="failed_red">#FFF44336</color>
 </resources>

@@ -107,6 +107,9 @@ class ChecklistAdapter(
                 "NUMERIC" -> {
                     val inputLayout = TextInputLayout(context).apply {
                         boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
+                        boxStrokeWidth = 3  // Make outline bolder
+                        boxStrokeWidthFocused = 3  // Keep bold when focused
+                        setBoxStrokeColor(context.getColor(android.R.color.darker_gray))
                         layoutParams = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
@@ -162,6 +165,9 @@ class ChecklistAdapter(
                 "TEXT" -> {
                     val inputLayout = TextInputLayout(context).apply {
                         boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
+                        boxStrokeWidth = 3  // Make outline bolder
+                        boxStrokeWidthFocused = 3  // Keep bold when focused
+                        setBoxStrokeColor(context.getColor(android.R.color.darker_gray))
                         layoutParams = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
