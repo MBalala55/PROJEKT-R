@@ -20,13 +20,15 @@ import com.google.android.material.textfield.TextInputLayout
 
 class ChecklistAdapter(
     private val onValueChanged: (Int, Int, Any?) -> Unit,
-    private val getValue: (Int, Int) -> Any?
+    private val getValue: (Int, Int) -> Any?,
+    private val onNapomenaChanged: (Int, String?) -> Unit = { _, _ -> },
+    private val getNapomena: (Int) -> String? = { null }
 ) : ListAdapter<ChecklistUredaj, ChecklistAdapter.ViewHolder>(DiffCallback()) {
     
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_checklist_device, parent, false)
-        return ViewHolder(view, onValueChanged, getValue)
+        return ViewHolder(view, onValueChanged, getValue, onNapomenaChanged, getNapomena)
     }
     
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -36,7 +38,9 @@ class ChecklistAdapter(
     class ViewHolder(
         itemView: View,
         private val onValueChanged: (Int, Int, Any?) -> Unit,
-        private val getValue: (Int, Int) -> Any?
+        private val getValue: (Int, Int) -> Any?,
+        private val onNapomenaChanged: (Int, String?) -> Unit,
+        private val getNapomena: (Int) -> String?
     ) : RecyclerView.ViewHolder(itemView) {
         
         private val deviceName: TextView = itemView.findViewById(R.id.device_name)
@@ -49,10 +53,18 @@ class ChecklistAdapter(
             
             parametersContainer.removeAllViews()
             
-            uredaj.parametri.sortedBy { it.redoslijed }.forEach { parametar ->
-                val paramView = createParameterView(parametar, uredaj.idUred)
-                parametersContainer.addView(paramView)
-            }
+            // Filter out "Napomena" parameter since we have a separate optional napomena field
+            uredaj.parametri
+                .filter { !it.nazParametra.equals("Napomena", ignoreCase = true) }
+                .sortedBy { it.redoslijed }
+                .forEach { parametar ->
+                    val paramView = createParameterView(parametar, uredaj.idUred)
+                    parametersContainer.addView(paramView)
+                }
+            
+            // Add napomena field after all parameters (optional, not required)
+            val napomenaView = createNapomenaView(uredaj.idUred)
+            parametersContainer.addView(napomenaView)
         }
         
         private fun createParameterView(parametar: ChecklistParametar, uredajId: Int): View {
@@ -206,6 +218,80 @@ class ChecklistAdapter(
             }
             
             return layout
+        }
+        
+        private fun createNapomenaView(uredajId: Int): View {
+            val context = itemView.context
+            
+            // Apply font size preference
+            val prefs = context.getSharedPreferences("theme_prefs", android.content.Context.MODE_PRIVATE)
+            val fontSize = prefs.getInt("font_size", 0)
+            val multiplier = when (fontSize) {
+                1 -> 1.2f
+                2 -> 1.4f
+                else -> 1.0f
+            }
+            
+            val container = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 16, 0, 16)
+                }
+            }
+            
+            val labelText = TextView(context).apply {
+                text = context.getString(R.string.note)
+                textSize = 16f * multiplier
+                setTypeface(null, android.graphics.Typeface.BOLD)
+            }
+            container.addView(labelText)
+            
+            val inputLayout = TextInputLayout(context).apply {
+                boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
+                hint = context.getString(R.string.note)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+            
+            val editText = TextInputEditText(context).apply {
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                setLines(3)
+                setMaxLines(5)
+                val currentValue = getNapomena(uredajId)
+                setText(currentValue ?: "")
+                
+                // Save value when user presses OK/Done on keyboard
+                setOnEditorActionListener { view, actionId, event ->
+                    if (actionId == EditorInfo.IME_ACTION_DONE || 
+                        actionId == EditorInfo.IME_ACTION_NEXT ||
+                        event?.keyCode == KeyEvent.KEYCODE_ENTER) {
+                        // Hide keyboard
+                        val imm = context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                        imm.hideSoftInputFromWindow(view.windowToken, 0)
+                        clearFocus()
+                        true
+                    } else {
+                        false
+                    }
+                }
+                
+                setOnFocusChangeListener { _, hasFocus ->
+                    if (!hasFocus) {
+                        val text = text?.toString()?.takeIf { it.isNotBlank() }
+                        onNapomenaChanged(uredajId, text)
+                    }
+                }
+            }
+            
+            inputLayout.addView(editText)
+            container.addView(inputLayout)
+            
+            return container
         }
     }
     

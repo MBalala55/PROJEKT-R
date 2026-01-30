@@ -149,12 +149,18 @@ class FieldListViewModel(
                 // Save the last field review before finishing
                 checklistViewModel?.saveFieldReview()
                 
+                // Give a small delay to ensure stavke are committed to database
+                kotlinx.coroutines.delay(100)
+                
                 android.util.Log.d("FieldListViewModel", "Završavam pregled ID: $pregledId")
-                // Mark inspection as finished locally
+                // Mark inspection as finished locally (status remains PENDING for offline sync)
                 pregledRepository.finishPregled(pregledId)
                 
+                // Another small delay to ensure finishPregled is committed
+                kotlinx.coroutines.delay(100)
+                
                 android.util.Log.d("FieldListViewModel", "Pokrećem sinkronizaciju...")
-                // Sync to server
+                // Try to sync to server (non-blocking - will sync automatically when online)
                 val syncResult = pregledRepository.syncPregledi()
                 android.util.Log.d("FieldListViewModel", "Sync rezultat: $syncResult")
                 
@@ -174,18 +180,50 @@ class FieldListViewModel(
                         )
                     }
                     is SyncResult.Error -> {
-                        android.util.Log.d("FieldListViewModel", "Sync neuspješan: ${syncResult.message}, resetiram currentPregledId")
-                        // Reset pregled state even on error so user can start fresh
-                        currentPregledId = null
-                        reviewedFieldIds.clear()
-                        countedFieldIds.clear()
+                        // Check if error is due to network/offline
+                        val errorMsg = syncResult.message.lowercase()
+                        val isOfflineError = errorMsg.contains("timeout") ||
+                                errorMsg.contains("konekcij") ||
+                                errorMsg.contains("connection") ||
+                                errorMsg.contains("network") ||
+                                errorMsg.contains("internet") ||
+                                errorMsg.contains("unable to resolve") ||
+                                errorMsg.contains("resolve host") ||
+                                errorMsg.contains("hostname") ||
+                                errorMsg.contains("unknownhost") ||
+                                errorMsg.contains("no address associated") ||
+                                errorMsg.contains("socket") ||
+                                errorMsg.contains("connectexception") ||
+                                errorMsg.contains("ioexception")
                         
-                        _uiState.value = _uiState.value.copy(
-                            isSaving = false,
-                            errorMessage = "Greška pri sinhronizaciji: ${syncResult.message}",
-                            reviewedFieldsCount = 0,
-                            reviewedFieldIds = emptySet()
-                        )
+                        if (isOfflineError) {
+                            // Offline mode - pregled is saved locally with PENDING status
+                            // It will sync automatically when connection is restored
+                            android.util.Log.d("FieldListViewModel", "Offline mode detected - pregled saved locally, will sync when online")
+                            currentPregledId = null
+                            reviewedFieldIds.clear()
+                            countedFieldIds.clear()
+                            
+                            _uiState.value = _uiState.value.copy(
+                                isSaving = false,
+                                saveSuccess = true, // Show success even offline
+                                reviewedFieldsCount = 0,
+                                reviewedFieldIds = emptySet()
+                            )
+                        } else {
+                            // Other error (e.g., token invalid, server error)
+                            android.util.Log.d("FieldListViewModel", "Sync neuspješan: ${syncResult.message}, resetiram currentPregledId")
+                            currentPregledId = null
+                            reviewedFieldIds.clear()
+                            countedFieldIds.clear()
+                            
+                            _uiState.value = _uiState.value.copy(
+                                isSaving = false,
+                                errorMessage = "Greška pri sinhronizaciji: ${syncResult.message}",
+                                reviewedFieldsCount = 0,
+                                reviewedFieldIds = emptySet()
+                            )
+                        }
                     }
                 }
             } catch (e: Exception) {

@@ -22,6 +22,9 @@ interface PostrojenjeDao {
     @Update
     suspend fun update(postrojenje: PostrojenjeEntity)
     
+    @Query("UPDATE Postrojenje SET zadnji_pregled = :zadnjiPregled WHERE id_postr = :id")
+    suspend fun updateZadnjiPregled(id: Int, zadnjiPregled: String?)
+    
     @Delete
     suspend fun delete(postrojenje: PostrojenjeEntity)
 }

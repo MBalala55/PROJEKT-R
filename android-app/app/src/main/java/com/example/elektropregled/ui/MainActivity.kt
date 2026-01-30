@@ -36,6 +36,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    override fun onResume() {
+        super.onResume()
+        // Trigger auto-sync when app comes to foreground
+        if (tokenStorage.isTokenValid()) {
+            (application as ElektropregledApplication).triggerAutoSync()
+        }
+    }
+    
     private fun showLogin() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, LoginFragment())
