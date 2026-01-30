@@ -122,13 +122,5 @@ CREATE INDEX idx_pregled_korisnik ON Pregled(id_korisnika);
 CREATE INDEX idx_pregled_postrojenje ON Pregled(id_postr);
 CREATE INDEX idx_stavka_pregled ON StavkaPregleda(id_preg);
 CREATE INDEX idx_stavka_uredaj ON StavkaPregleda(id_ured);
-
--- Indeksi za statičke tablice (za JOIN operacije)
--- Removed: Room doesn't expect these indices for Uredaj table
--- CREATE INDEX idx_uredaj_postrojenje ON Uredaj(id_postr);
--- CREATE INDEX idx_uredaj_polje ON Uredaj(id_polje);
--- CREATE INDEX idx_uredaj_vrsta ON Uredaj(id_vr_ured);
 CREATE INDEX idx_parametar_vrsta ON ParametarProvjere(id_vr_ured);
 CREATE INDEX idx_parametar_redoslijed ON ParametarProvjere(id_vr_ured, redoslijed);
--- Index removed: Room doesn't expect this index for Polje table
--- CREATE INDEX idx_polje_postrojenje ON Polje(id_postr);

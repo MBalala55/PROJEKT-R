@@ -9,15 +9,15 @@ import androidx.room.PrimaryKey
     tableName = "Pregled",
     foreignKeys = [
         ForeignKey(
-            entity = KorisnikEntity::class,
-            parentColumns = ["id_korisnika"],
-            childColumns = ["id_korisnika"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
             entity = PostrojenjeEntity::class,
             parentColumns = ["id_postr"],
             childColumns = ["id_postr"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = KorisnikEntity::class,
+            parentColumns = ["id_korisnika"],
+            childColumns = ["id_korisnika"],
             onDelete = ForeignKey.CASCADE
         )
     ],
@@ -32,6 +32,7 @@ data class PregledEntity(
     val id_preg: Int = 0,
     val lokalni_id: String, // UUID
     val server_id: Int? = null,
+    @androidx.room.ColumnInfo(defaultValue = "PENDING")
     val status_sinkronizacije: String = "PENDING", // PENDING, SYNCING, SYNCED, FAILED
     val pocetak: String, // ISO 8601 format
     val kraj: String? = null,

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "19d91b39c1798a1e9bcfcb496dad9bd2",
+    "identityHash": "a7dc1f96d96017797208eb34f7decfef",
     "entities": [
       {
         "tableName": "Korisnik",
@@ -359,7 +359,7 @@
       },
       {
         "tableName": "Pregled",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id_preg` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `lokalni_id` TEXT NOT NULL, `server_id` INTEGER, `status_sinkronizacije` TEXT NOT NULL, `pocetak` TEXT NOT NULL, `kraj` TEXT, `napomena` TEXT, `sync_error` TEXT, `id_korisnika` INTEGER NOT NULL, `id_postr` INTEGER NOT NULL, FOREIGN KEY(`id_korisnika`) REFERENCES `Korisnik`(`id_korisnika`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`id_postr`) REFERENCES `Postrojenje`(`id_postr`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id_preg` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `lokalni_id` TEXT NOT NULL, `server_id` INTEGER, `status_sinkronizacije` TEXT NOT NULL DEFAULT 'PENDING', `pocetak` TEXT NOT NULL, `kraj` TEXT, `napomena` TEXT, `sync_error` TEXT, `id_korisnika` INTEGER NOT NULL, `id_postr` INTEGER NOT NULL, FOREIGN KEY(`id_postr`) REFERENCES `Postrojenje`(`id_postr`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`id_korisnika`) REFERENCES `Korisnik`(`id_korisnika`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id_preg",
@@ -382,7 +382,8 @@
             "fieldPath": "status_sinkronizacije",
             "columnName": "status_sinkronizacije",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": true,
+            "defaultValue": "'PENDING'"
           },
           {
             "fieldPath": "pocetak",
@@ -455,17 +456,6 @@
         ],
         "foreignKeys": [
           {
-            "table": "Korisnik",
-            "onDelete": "CASCADE",
-            "onUpdate": "NO ACTION",
-            "columns": [
-              "id_korisnika"
-            ],
-            "referencedColumns": [
-              "id_korisnika"
-            ]
-          },
-          {
             "table": "Postrojenje",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
@@ -474,6 +464,17 @@
             ],
             "referencedColumns": [
               "id_postr"
+            ]
+          },
+          {
+            "table": "Korisnik",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "id_korisnika"
+            ],
+            "referencedColumns": [
+              "id_korisnika"
             ]
           }
         ]
@@ -620,7 +621,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '19d91b39c1798a1e9bcfcb496dad9bd2')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a7dc1f96d96017797208eb34f7decfef')"
     ]
   }
 }
