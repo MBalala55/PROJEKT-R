@@ -36,4 +36,10 @@ interface PregledDao {
     
     @Query("UPDATE Pregled SET server_id = :serverId, status_sinkronizacije = 'SYNCED' WHERE lokalni_id = :lokalniId")
     suspend fun updateServerId(lokalniId: String, serverId: Int)
+    
+    @Query("SELECT COUNT(*) FROM Pregled WHERE id_postr = :postrojenjeId")
+    suspend fun getPregledCountByPostrojenje(postrojenjeId: Int): Int
+    
+    @Query("SELECT * FROM Pregled WHERE id_postr = :postrojenjeId ORDER BY pocetak DESC LIMIT 1")
+    suspend fun getLastPregledByPostrojenje(postrojenjeId: Int): PregledEntity?
 }

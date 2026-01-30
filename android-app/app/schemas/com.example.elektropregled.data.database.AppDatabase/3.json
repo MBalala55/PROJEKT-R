@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 1,
-    "identityHash": "0ac39e5538d90da74729350cde6a71e7",
+    "version": 3,
+    "identityHash": "a7dc1f96d96017797208eb34f7decfef",
     "entities": [
       {
         "tableName": "Korisnik",
@@ -256,7 +256,7 @@
       },
       {
         "tableName": "ParametarProvjere",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id_parametra` INTEGER NOT NULL, `naz_parametra` TEXT NOT NULL, `tip_podataka` TEXT NOT NULL, `min_vrijednost` REAL, `max_vrijednost` REAL, `mjerna_jedinica` TEXT, `obavezan` INTEGER NOT NULL, `redoslijed` INTEGER NOT NULL, `opis` TEXT, `id_vr_ured` INTEGER NOT NULL, PRIMARY KEY(`id_parametra`), FOREIGN KEY(`id_vr_ured`) REFERENCES `VrstaUredaja`(`id_vr_ured`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id_parametra` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `naz_parametra` TEXT NOT NULL, `tip_podataka` TEXT NOT NULL, `min_vrijednost` REAL, `max_vrijednost` REAL, `mjerna_jedinica` TEXT, `obavezan` INTEGER NOT NULL DEFAULT 1, `redoslijed` INTEGER NOT NULL, `opis` TEXT, `id_vr_ured` INTEGER NOT NULL, FOREIGN KEY(`id_vr_ured`) REFERENCES `VrstaUredaja`(`id_vr_ured`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
         "fields": [
           {
             "fieldPath": "id_parametra",
@@ -295,7 +295,8 @@
             "fieldPath": "obavezan",
             "columnName": "obavezan",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": true,
+            "defaultValue": "1"
           },
           {
             "fieldPath": "redoslijed",
@@ -316,15 +317,36 @@
           }
         ],
         "primaryKey": {
-          "autoGenerate": false,
+          "autoGenerate": true,
           "columnNames": [
             "id_parametra"
           ]
         },
+        "indices": [
+          {
+            "name": "idx_parametar_vrsta",
+            "unique": false,
+            "columnNames": [
+              "id_vr_ured"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_parametar_vrsta` ON `${TABLE_NAME}` (`id_vr_ured`)"
+          },
+          {
+            "name": "idx_parametar_redoslijed",
+            "unique": false,
+            "columnNames": [
+              "id_vr_ured",
+              "redoslijed"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_parametar_redoslijed` ON `${TABLE_NAME}` (`id_vr_ured`, `redoslijed`)"
+          }
+        ],
         "foreignKeys": [
           {
             "table": "VrstaUredaja",
-            "onDelete": "CASCADE",
+            "onDelete": "NO ACTION",
             "onUpdate": "NO ACTION",
             "columns": [
               "id_vr_ured"
@@ -337,7 +359,7 @@
       },
       {
         "tableName": "Pregled",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id_preg` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `lokalni_id` TEXT NOT NULL, `server_id` INTEGER, `status_sinkronizacije` TEXT NOT NULL, `pocetak` TEXT NOT NULL, `kraj` TEXT, `napomena` TEXT, `sync_error` TEXT, `id_korisnika` INTEGER NOT NULL, `id_postr` INTEGER NOT NULL, FOREIGN KEY(`id_korisnika`) REFERENCES `Korisnik`(`id_korisnika`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`id_postr`) REFERENCES `Postrojenje`(`id_postr`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id_preg` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `lokalni_id` TEXT NOT NULL, `server_id` INTEGER, `status_sinkronizacije` TEXT NOT NULL DEFAULT 'PENDING', `pocetak` TEXT NOT NULL, `kraj` TEXT, `napomena` TEXT, `sync_error` TEXT, `id_korisnika` INTEGER NOT NULL, `id_postr` INTEGER NOT NULL, FOREIGN KEY(`id_postr`) REFERENCES `Postrojenje`(`id_postr`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`id_korisnika`) REFERENCES `Korisnik`(`id_korisnika`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id_preg",
@@ -360,7 +382,8 @@
             "fieldPath": "status_sinkronizacije",
             "columnName": "status_sinkronizacije",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": true,
+            "defaultValue": "'PENDING'"
           },
           {
             "fieldPath": "pocetak",
@@ -433,17 +456,6 @@
         ],
         "foreignKeys": [
           {
-            "table": "Korisnik",
-            "onDelete": "CASCADE",
-            "onUpdate": "NO ACTION",
-            "columns": [
-              "id_korisnika"
-            ],
-            "referencedColumns": [
-              "id_korisnika"
-            ]
-          },
-          {
             "table": "Postrojenje",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
@@ -452,6 +464,17 @@
             ],
             "referencedColumns": [
               "id_postr"
+            ]
+          },
+          {
+            "table": "Korisnik",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "id_korisnika"
+            ],
+            "referencedColumns": [
+              "id_korisnika"
             ]
           }
         ]
@@ -598,7 +621,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0ac39e5538d90da74729350cde6a71e7')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a7dc1f96d96017797208eb34f7decfef')"
     ]
   }
 }

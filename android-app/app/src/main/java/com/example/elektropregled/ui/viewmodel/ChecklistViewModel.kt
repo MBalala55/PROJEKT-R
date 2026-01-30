@@ -11,6 +11,7 @@ import com.example.elektropregled.data.repository.PregledRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,33 +42,51 @@ class ChecklistViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             
-            checklistRepository.getChecklist(postrojenjeId, poljeId)
-                .onSuccess { uredaji ->
-                    // Initialize with default values
-                    uredaji.forEach { uredaj ->
-                        uredaj.parametri.forEach { parametar ->
-                            val key = "${uredaj.idUred}-${parametar.idParametra}"
-                            if (!parameterValues.containsKey(key)) {
-                                when (parametar.tipPodataka) {
-                                    "BOOLEAN" -> parameterValues[key] = parametar.defaultVrijednostBool ?: true
-                                    "NUMERIC" -> parameterValues[key] = parametar.defaultVrijednostNum
-                                    "TEXT" -> parameterValues[key] = parametar.defaultVrijednostTxt
+            // Trigger background sync if online (non-blocking)
+            checklistRepository.triggerSyncIfOnline(viewModelScope, postrojenjeId, poljeId)
+            
+            // Collect from Flow - Room Flows emit immediately when data exists
+            try {
+                android.util.Log.d("ChecklistViewModel", "Starting to collect from getChecklistFlow: postrojenjeId=$postrojenjeId, poljeId=$poljeId")
+                
+                checklistRepository.getChecklistFlow(postrojenjeId, poljeId)
+                    .catch { e ->
+                        android.util.Log.e("ChecklistViewModel", "Error in getChecklistFlow", e)
+                        e.printStackTrace()
+                        emit(emptyList())
+                    }
+                    .collect { uredaji ->
+                        android.util.Log.d("ChecklistViewModel", "Received ${uredaji.size} uredaji from Flow")
+                        
+                        // Update parameter values for new devices
+                        uredaji.forEach { uredaj ->
+                            uredaj.parametri.forEach { parametar ->
+                                val key = "${uredaj.idUred}-${parametar.idParametra}"
+                                if (!parameterValues.containsKey(key)) {
+                                    when (parametar.tipPodataka) {
+                                        "BOOLEAN" -> parameterValues[key] = parametar.defaultVrijednostBool ?: true
+                                        "NUMERIC" -> parameterValues[key] = parametar.defaultVrijednostNum
+                                        "TEXT" -> parameterValues[key] = parametar.defaultVrijednostTxt
+                                    }
                                 }
                             }
                         }
+                        
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            uredaji = uredaji,
+                            errorMessage = null
+                        )
                     }
-                    
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        uredaji = uredaji
-                    )
-                }
-                .onFailure { error ->
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = error.message ?: "Greška pri učitavanju checklistte"
-                    )
-                }
+            } catch (e: Exception) {
+                android.util.Log.e("ChecklistViewModel", "Exception in loadChecklist", e)
+                e.printStackTrace()
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = "Greška: ${e.message}",
+                    uredaji = emptyList()
+                )
+            }
         }
     }
     

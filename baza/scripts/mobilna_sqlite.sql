@@ -6,7 +6,7 @@
 
 CREATE TABLE Korisnik
 (
-  id_korisnika INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_korisnika INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   ime TEXT NOT NULL,
   prezime TEXT NOT NULL,
   korisnicko_ime TEXT NOT NULL UNIQUE,
@@ -29,13 +29,13 @@ CREATE TABLE Polje
   ozn_vr_polje TEXT NOT NULL,
   naz_polje TEXT NOT NULL,
   id_postr INTEGER NOT NULL,
-  FOREIGN KEY (id_postr) REFERENCES Postrojenje(id_postr),
+  FOREIGN KEY (id_postr) REFERENCES Postrojenje(id_postr) ON DELETE CASCADE,
   CHECK (nap_razina IN (400.0, 220.0, 120.0, 110.0, 35.0, 30.0, 25.5, 20.0, 10.0))
 );
 
 CREATE TABLE VrstaUredaja
 (
-  id_vr_ured INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_vr_ured INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   ozn_vr_ured TEXT NOT NULL UNIQUE,
   naz_vr_ured TEXT NOT NULL UNIQUE
 );
@@ -48,14 +48,14 @@ CREATE TABLE Uredaj
   id_postr INTEGER NOT NULL,
   id_polje INTEGER,
   id_vr_ured INTEGER NOT NULL,
-  FOREIGN KEY (id_postr) REFERENCES Postrojenje(id_postr),
-  FOREIGN KEY (id_polje) REFERENCES Polje(id_polje),
-  FOREIGN KEY (id_vr_ured) REFERENCES VrstaUredaja(id_vr_ured)
+  FOREIGN KEY (id_postr) REFERENCES Postrojenje(id_postr) ON DELETE CASCADE,
+  FOREIGN KEY (id_polje) REFERENCES Polje(id_polje) ON DELETE SET NULL,
+  FOREIGN KEY (id_vr_ured) REFERENCES VrstaUredaja(id_vr_ured) ON DELETE CASCADE
 );
 
 CREATE TABLE Pregled
 (
-  id_preg INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_preg INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   lokalni_id TEXT NOT NULL UNIQUE,  -- UUID generiran offline
   server_id INTEGER,  -- ID s servera nakon sinkronizacije (NULL dok nije synced)
   status_sinkronizacije TEXT NOT NULL DEFAULT 'PENDING',
@@ -94,7 +94,7 @@ CREATE TABLE ParametarProvjere
 
 CREATE TABLE StavkaPregleda
 (
-  id_stavke INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_stavke INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   lokalni_id TEXT NOT NULL UNIQUE,  -- UUID spremljen kao TEXT
   server_id INTEGER,  -- ID s servera nakon sinkronizacije
   vrijednost_bool INTEGER,
@@ -122,11 +122,5 @@ CREATE INDEX idx_pregled_korisnik ON Pregled(id_korisnika);
 CREATE INDEX idx_pregled_postrojenje ON Pregled(id_postr);
 CREATE INDEX idx_stavka_pregled ON StavkaPregleda(id_preg);
 CREATE INDEX idx_stavka_uredaj ON StavkaPregleda(id_ured);
-
--- Indeksi za statičke tablice (za JOIN operacije)
-CREATE INDEX idx_uredaj_postrojenje ON Uredaj(id_postr);
-CREATE INDEX idx_uredaj_polje ON Uredaj(id_polje);
-CREATE INDEX idx_uredaj_vrsta ON Uredaj(id_vr_ured);
 CREATE INDEX idx_parametar_vrsta ON ParametarProvjere(id_vr_ured);
 CREATE INDEX idx_parametar_redoslijed ON ParametarProvjere(id_vr_ured, redoslijed);
-CREATE INDEX idx_polje_postrojenje ON Polje(id_postr);

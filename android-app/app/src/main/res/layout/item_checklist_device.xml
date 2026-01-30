@@ -2,29 +2,41 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="?attr/selectableItemBackground">
-
-    <TextView
-        android:id="@+id/device_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/device_info"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:textColor="@android:color/darker_gray"
-        android:layout_marginBottom="8dp" />
+    android:orientation="vertical">
 
     <LinearLayout
-        android:id="@+id/parameters_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical" />
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="?attr/selectableItemBackground">
+
+        <TextView
+            android:id="@+id/device_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/device_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:id="@+id/parameters_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray" />
 
 </LinearLayout>

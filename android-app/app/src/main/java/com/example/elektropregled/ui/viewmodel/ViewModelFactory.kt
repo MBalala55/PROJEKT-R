@@ -7,10 +7,11 @@ import com.example.elektropregled.data.repository.*
 
 class ViewModelFactory(private val app: ElektropregledApplication) : ViewModelProvider.Factory {
     
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
             modelClass.isAssignableFrom(LoginViewModel::class.java) -> {
-                LoginViewModel(app.tokenStorage) as T
+                LoginViewModel(app.tokenStorage, app) as T
             }
             modelClass.isAssignableFrom(FacilityListViewModel::class.java) -> {
                 FacilityListViewModel(app.postrojenjeRepository) as T

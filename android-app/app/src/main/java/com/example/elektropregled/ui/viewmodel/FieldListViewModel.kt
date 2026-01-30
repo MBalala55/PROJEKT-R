@@ -8,7 +8,7 @@ import com.example.elektropregled.data.repository.PregledRepository
 import com.example.elektropregled.data.repository.SyncResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 data class FieldListUiState(
@@ -65,23 +65,38 @@ class FieldListViewModel(
                 currentPregledId = pregled.id_preg
             }
             
-            repository.getPolja(postrojenjeId)
-                .onSuccess { fields ->
-                    totalFieldsCount = fields.size
-                    android.util.Log.d("FieldListViewModel", "Polja učitana: totalFieldsCount=$totalFieldsCount, polja=${fields.map { "${it.idPolje}:${it.nazPolje}" }}")
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        fields = fields,
-                        reviewedFieldsCount = 0
-                    )
-                }
-                .onFailure { error ->
-                    android.util.Log.d("FieldListViewModel", "Greška pri učitavanju polja: ${error.message}")
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = error.message ?: "Greška pri učitavanju polja"
-                    )
-                }
+            // Trigger background sync if online (non-blocking)
+            repository.triggerSyncPoljaIfOnline(viewModelScope, postrojenjeId)
+            
+            // Collect from Flow - Room Flows emit immediately when data exists
+            try {
+                android.util.Log.d("FieldListViewModel", "Starting to collect from getPoljaFlow")
+                
+                repository.getPoljaFlow(postrojenjeId)
+                    .catch { e ->
+                        android.util.Log.e("FieldListViewModel", "Error in getPoljaFlow", e)
+                        e.printStackTrace()
+                        emit(emptyList())
+                    }
+                    .collect { fields ->
+                        totalFieldsCount = fields.size
+                        android.util.Log.d("FieldListViewModel", "Received ${fields.size} polja from Flow: ${fields.map { "${it.idPolje}:${it.nazPolje}" }}")
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            fields = fields,
+                            reviewedFieldsCount = _uiState.value.reviewedFieldsCount,
+                            errorMessage = null
+                        )
+                    }
+            } catch (e: Exception) {
+                android.util.Log.e("FieldListViewModel", "Exception in loadFields", e)
+                e.printStackTrace()
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = "Greška: ${e.message}",
+                    fields = emptyList()
+                )
+            }
         }
     }
     

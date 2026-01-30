@@ -1,0 +1,81 @@
+{
+  "TR": [
+    {
+      "naz_parametra": "Vizualna provjera općeg stanja",
+      "tip_podataka": "BOOLEAN",
+      "obavezan": true,
+      "redoslijed": 1,
+      "opis": "Provjera općeg vizualnog stanja transformatora"
+    },
+    {
+      "naz_parametra": "Provjera ulja",
+      "tip_podataka": "BOOLEAN",
+      "obavezan": true,
+      "redoslijed": 2,
+      "opis": "Provjera stanja i razine ulja"
+    },
+    {
+      "naz_parametra": "Temperatura ulja",
+      "tip_podataka": "NUMERIC",
+      "min_vrijednost": -20,
+      "max_vrijednost": 100,
+      "mjerna_jedinica": "°C",
+      "obavezan": true,
+      "redoslijed": 3,
+      "opis": "Mjerenje temperature ulja"
+    },
+    {
+      "naz_parametra": "Napomena",
+      "tip_podataka": "TEXT",
+      "obavezan": false,
+      "redoslijed": 4,
+      "opis": "Dodatne napomene"
+    }
+  ],
+  "IS": [
+    {
+      "naz_parametra": "Vizualna provjera",
+      "tip_podataka": "BOOLEAN",
+      "obavezan": true,
+      "redoslijed": 1,
+      "opis": "Vizualna provjera općeg stanja"
+    },
+    {
+      "naz_parametra": "Provjera mehanizma",
+      "tip_podataka": "BOOLEAN",
+      "obavezan": true,
+      "redoslijed": 2,
+      "opis": "Provjera ispravnosti mehanizma isklopnika"
+    },
+    {
+      "naz_parametra": "Napomena",
+      "tip_podataka": "TEXT",
+      "obavezan": false,
+      "redoslijed": 3,
+      "opis": "Dodatne napomene"
+    }
+  ],
+  "RE": [
+    {
+      "naz_parametra": "Vizualna provjera",
+      "tip_podataka": "BOOLEAN",
+      "obavezan": true,
+      "redoslijed": 1,
+      "opis": "Vizualna provjera općeg stanja"
+    },
+    {
+      "naz_parametra": "Provjera indikacije",
+      "tip_podataka": "BOOLEAN",
+      "obavezan": true,
+      "redoslijed": 2,
+      "opis": "Provjera indikacije rada releja"
+    },
+    {
+      "naz_parametra": "Napomena",
+      "tip_podataka": "TEXT",
+      "obavezan": false,
+      "redoslijed": 3,
+      "opis": "Dodatne napomene"
+    }
+  ]
+}
