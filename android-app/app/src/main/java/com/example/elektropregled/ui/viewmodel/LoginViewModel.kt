@@ -1,10 +1,12 @@
 package com.example.elektropregled.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.elektropregled.data.api.ApiClient
 import com.example.elektropregled.data.api.dto.LoginRequest
 import com.example.elektropregled.data.TokenStorage
+import com.example.elektropregled.util.NetworkUtil
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -16,7 +18,8 @@ data class LoginUiState(
 )
 
 class LoginViewModel(
-    private val tokenStorage: TokenStorage
+    private val tokenStorage: TokenStorage,
+    private val context: Context
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -26,6 +29,14 @@ class LoginViewModel(
         if (username.isBlank() || password.isBlank()) {
             _uiState.value = _uiState.value.copy(
                 errorMessage = "Molimo unesite korisničko ime i lozinku"
+            )
+            return
+        }
+        
+        // Login requires online connection - check network first
+        if (!NetworkUtil.isNetworkAvailable(context)) {
+            _uiState.value = _uiState.value.copy(
+                errorMessage = "Prijava zahtijeva internetsku vezu. Molimo provjerite svoju konekciju."
             )
             return
         }

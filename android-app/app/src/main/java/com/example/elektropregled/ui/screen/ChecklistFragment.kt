@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 class ChecklistFragment : Fragment() {
     
     private var _binding: FragmentChecklistBinding? = null
-    private val binding get() = _binding!!
+    private val binding get() = _binding ?: throw IllegalStateException("Binding is null. Fragment view may have been destroyed.")
     
     private val viewModel: ChecklistViewModel by activityViewModels {
         ViewModelFactory(requireActivity().application as ElektropregledApplication)
@@ -117,7 +117,13 @@ class ChecklistFragment : Fragment() {
                 
                 // Small delay to let the UI update
                 delay(100)
-                requireActivity().onBackPressed()
+                // Use the new back press handling
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                } else {
+                    @Suppress("DEPRECATION")
+                    requireActivity().onBackPressed()
+                }
             }
         }
         
