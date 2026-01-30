@@ -89,20 +89,23 @@ class FacilityListFragment : Fragment() {
         
         lifecycleScope.launch {
             viewModel.uiState.collect { state ->
-                binding.loadingProgress.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+                // Check if binding is still valid (view might be destroyed)
+                val currentBinding = _binding ?: return@collect
+                
+                currentBinding.loadingProgress.visibility = if (state.isLoading) View.VISIBLE else View.GONE
                 
                 if (state.errorMessage != null) {
-                    binding.errorText.text = state.errorMessage
-                    binding.errorText.visibility = View.VISIBLE
-                    binding.emptyText.visibility = View.GONE
+                    currentBinding.errorText.text = state.errorMessage
+                    currentBinding.errorText.visibility = View.VISIBLE
+                    currentBinding.emptyText.visibility = View.GONE
                 } else {
-                    binding.errorText.visibility = View.GONE
+                    currentBinding.errorText.visibility = View.GONE
                 }
                 
                 if (state.facilities.isEmpty() && !state.isLoading) {
-                    binding.emptyText.visibility = View.VISIBLE
+                    currentBinding.emptyText.visibility = View.VISIBLE
                 } else {
-                    binding.emptyText.visibility = View.GONE
+                    currentBinding.emptyText.visibility = View.GONE
                     currentFacilities = state.facilities
                     applySortToList()
                 }

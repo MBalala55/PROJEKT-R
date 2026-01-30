@@ -14,9 +14,78 @@ class ChecklistRepository(
     private val apiService = ApiClient.apiService
     
     suspend fun getChecklist(postrojenjeId: Int, poljeId: Int?): Result<List<ChecklistUredaj>> {
+        // First, try to load from local database
+        try {
+            val uredajDao = database.uredajDao()
+            val vrstaUredajaDao = database.vrstaUredajaDao()
+            val parametarDao = database.parametarProvjereDao()
+            val poljeDao = database.poljeDao()
+            
+            // Get devices based on poljeId
+            val uredaji = if (poljeId == null || poljeId == 0) {
+                // Devices directly on facility
+                uredajDao.getUredajiDirectlyOnPostrojenje(postrojenjeId)
+            } else {
+                // Devices in a specific field
+                uredajDao.getUredajiByPolje(poljeId)
+            }
+            
+            if (uredaji.isNotEmpty()) {
+                android.util.Log.d("ChecklistRepository", "Loading ${uredaji.size} devices from local database")
+                
+                val checklistUredaji = uredaji.mapNotNull { uredaj ->
+                    val vrsta = vrstaUredajaDao.getById(uredaj.id_vr_ured) ?: return@mapNotNull null
+                    val parametri = parametarDao.getParametriByVrstaUredaja(uredaj.id_vr_ured)
+                    
+                    // Get polje info if device has a polje
+                    val polje = uredaj.id_polje?.let { poljeDao.getPoljeById(it) }
+                    
+                    // Convert parametri to ChecklistParametar
+                    val checklistParametri = parametri.map { param ->
+                        com.example.elektropregled.data.api.dto.ChecklistParametar(
+                            idParametra = param.id_parametra,
+                            nazParametra = param.naz_parametra,
+                            tipPodataka = param.tip_podataka,
+                            minVrijednost = param.min_vrijednost,
+                            maxVrijednost = param.max_vrijednost,
+                            mjernaJedinica = param.mjerna_jedinica,
+                            obavezan = param.obavezan,
+                            redoslijed = param.redoslijed,
+                            defaultVrijednostBool = null, // Defaults handled in ViewModel
+                            defaultVrijednostNum = null,
+                            defaultVrijednostTxt = null,
+                            zadnjaProveraDatum = null, // Can be enhanced if needed
+                            opis = param.opis
+                        )
+                    }.sortedBy { it.redoslijed }
+                    
+                    com.example.elektropregled.data.api.dto.ChecklistUredaj(
+                        idUred = uredaj.id_ured,
+                        natpPlocica = uredaj.natp_plocica,
+                        tvBroj = uredaj.tv_broj,
+                        oznVrUred = vrsta.ozn_vr_ured,
+                        nazVrUred = vrsta.naz_vr_ured,
+                        idPolje = uredaj.id_polje,
+                        nazPolje = polje?.naz_polje ?: "",
+                        napRazina = polje?.nap_razina,
+                        parametri = checklistParametri
+                    )
+                }
+                
+                if (checklistUredaji.isNotEmpty()) {
+                    return Result.success(checklistUredaji)
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ChecklistRepository", "Error loading checklist from local database", e)
+        }
+        
+        // If local database is empty, try to fetch from API only if we have a valid token
+        // But catch network errors and return appropriate offline response
         val token = tokenStorage.getToken()
         if (token == null || !tokenStorage.isTokenValid()) {
-            return Result.failure(Exception("Token nije valjan"))
+            android.util.Log.d("ChecklistRepository", "No valid token, returning empty list for offline mode")
+            return Result.success(emptyList()) // Return empty list for offline mode
         }
         
         // Use 0 for devices directly on facility (when idPolje is null)
@@ -34,16 +103,27 @@ class ChecklistRepository(
             } else {
                 Result.failure(Exception("Greška pri učitavanju checklistte: ${response.code()}"))
             }
+        } catch (e: java.net.UnknownHostException) {
+            // Offline mode - return empty list
+            android.util.Log.d("ChecklistRepository", "Offline mode detected, no internet connection. Returning empty list.")
+            Result.success(emptyList()) // Return empty list for offline mode
         } catch (e: java.net.SocketTimeoutException) {
-            Result.failure(Exception("Server timeout - provjerite internet konekciju", e))
+            android.util.Log.d("ChecklistRepository", "Server timeout, returning empty list for offline mode")
+            Result.success(emptyList()) // Return empty list for offline mode
         } catch (e: java.net.ConnectException) {
-            Result.failure(Exception("Nemogućo se povezati - server je možda odsutan", e))
+            android.util.Log.d("ChecklistRepository", "Connection exception, returning empty list for offline mode")
+            Result.success(emptyList()) // Return empty list for offline mode
+        } catch (e: java.io.IOException) {
+            // General network error - offline mode
+            android.util.Log.d("ChecklistRepository", "Network error (offline mode): ${e.message}")
+            Result.success(emptyList()) // Return empty list for offline mode
         } catch (e: Exception) {
-            Result.failure(Exception("Greška pri učitavanju checklistte: ${e.message}", e))
+            android.util.Log.e("ChecklistRepository", "Unexpected error loading checklist", e)
+            Result.failure(Exception("Greška pri učitavanju checklistte: ${e.message}"))
         }
     }
     
-    private suspend fun saveChecklistToDatabase(checklist: List<ChecklistUredaj>, postrojenjeId: Int) {
+    suspend fun saveChecklistToDatabase(checklist: List<ChecklistUredaj>, postrojenjeId: Int) {
         val vrstaUredajaDao = database.vrstaUredajaDao()
         val uredajDao = database.uredajDao()
         val parametarDao = database.parametarProvjereDao()
@@ -153,23 +233,23 @@ class ChecklistRepository(
                 }
             }
             
-            // Save Parametri
+            // Save Parametri - always insert/replace to ensure we have latest server data
+            // This is critical for auto-fix to work - we need to update parameters with correct server IDs
             uredajDto.parametri.forEach { parametarDto ->
-                val parametar = parametarDao.getParametarById(parametarDto.idParametra)
-                if (parametar == null) {
-                    parametarDao.insert(ParametarProvjereEntity(
-                        id_parametra = parametarDto.idParametra,
-                        naz_parametra = parametarDto.nazParametra,
-                        tip_podataka = parametarDto.tipPodataka,
-                        min_vrijednost = parametarDto.minVrijednost,
-                        max_vrijednost = parametarDto.maxVrijednost,
-                        mjerna_jedinica = parametarDto.mjernaJedinica,
-                        obavezan = parametarDto.obavezan,
-                        redoslijed = parametarDto.redoslijed,
-                        opis = parametarDto.opis,
-                        id_vr_ured = vrstaId
-                    ))
-                }
+                // Use insert with REPLACE to update if parameter already exists
+                // This ensures we get the correct parameter IDs from the server
+                parametarDao.insert(ParametarProvjereEntity(
+                    id_parametra = parametarDto.idParametra,
+                    naz_parametra = parametarDto.nazParametra,
+                    tip_podataka = parametarDto.tipPodataka,
+                    min_vrijednost = parametarDto.minVrijednost,
+                    max_vrijednost = parametarDto.maxVrijednost,
+                    mjerna_jedinica = parametarDto.mjernaJedinica,
+                    obavezan = parametarDto.obavezan,
+                    redoslijed = parametarDto.redoslijed,
+                    opis = parametarDto.opis,
+                    id_vr_ured = vrstaId
+                ))
             }
         }
     }

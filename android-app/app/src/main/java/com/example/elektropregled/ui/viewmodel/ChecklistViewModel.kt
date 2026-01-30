@@ -32,6 +32,7 @@ class ChecklistViewModel(
     
     private var currentPregledId: Int? = null
     private val parameterValues = mutableMapOf<String, Any?>() // Key: "uredId-paramId", Value: actual value
+    private val deviceNapomena = mutableMapOf<Int, String?>() // Key: uredajId, Value: napomena
     
     fun setPregledId(pregledId: Int) {
         currentPregledId = pregledId
@@ -81,10 +82,24 @@ class ChecklistViewModel(
         return parameterValues[key]
     }
     
+    fun updateDeviceNapomena(uredajId: Int, napomena: String?) {
+        deviceNapomena[uredajId] = napomena
+    }
+    
+    fun getDeviceNapomena(uredajId: Int): String? {
+        return deviceNapomena[uredajId]
+    }
+    
     fun validateAllRequiredParametersAreFilled(): Pair<Boolean, String?> {
         // Check if all mandatory parameters are filled
+        // Skip "Napomena" parameter since we have a separate optional napomena field per device
         for (uredaj in _uiState.value.uredaji) {
             for (parametar in uredaj.parametri) {
+                // Skip validation for "Napomena" parameter - it's now optional via the separate field
+                if (parametar.nazParametra.equals("Napomena", ignoreCase = true)) {
+                    continue
+                }
+                
                 if (parametar.obavezan) {
                     val value = getParameterValue(uredaj.idUred, parametar.idParametra)
                     
@@ -159,6 +174,9 @@ class ChecklistViewModel(
                         val now = java.time.LocalDateTime.now().toString()
                         val lokalniId = UUID.randomUUID().toString()
                         
+                        // Get napomena for this device (same for all parameters of the device)
+                        val napomena = deviceNapomena[uredId]
+                        
                         when (parametar.tipPodataka) {
                             "BOOLEAN" -> {
                                 val boolValue = value as? Boolean ?: true
@@ -167,6 +185,7 @@ class ChecklistViewModel(
                                     vrijednost_bool = if (boolValue) 1 else 0,
                                     vrijednost_num = null,
                                     vrijednost_txt = null,
+                                    napomena = napomena,
                                     vrijeme_unosa = now,
                                     id_preg = pregledId,
                                     id_ured = uredId,
@@ -181,6 +200,7 @@ class ChecklistViewModel(
                                     vrijednost_bool = null,
                                     vrijednost_num = numValue,
                                     vrijednost_txt = null,
+                                    napomena = napomena,
                                     vrijeme_unosa = now,
                                     id_preg = pregledId,
                                     id_ured = uredId,
@@ -195,6 +215,7 @@ class ChecklistViewModel(
                                     vrijednost_bool = null,
                                     vrijednost_num = null,
                                     vrijednost_txt = txtValue,
+                                    napomena = napomena,
                                     vrijeme_unosa = now,
                                     id_preg = pregledId,
                                     id_ured = uredId,

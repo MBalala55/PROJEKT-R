@@ -16,8 +16,8 @@ import androidx.room.PrimaryKey
     ]
 )
 data class ParametarProvjereEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id_parametra: Int = 0,
+    @PrimaryKey
+    val id_parametra: Int,
     val naz_parametra: String,
     val tip_podataka: String, // 'BOOLEAN', 'NUMERIC', 'TEXT'
     val min_vrijednost: Double?,

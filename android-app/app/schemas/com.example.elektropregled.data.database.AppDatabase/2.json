@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 1,
-    "identityHash": "0ac39e5538d90da74729350cde6a71e7",
+    "version": 2,
+    "identityHash": "97efbfeeafbb91188715a782cd877e62",
     "entities": [
       {
         "tableName": "Korisnik",
@@ -54,7 +54,7 @@
       },
       {
         "tableName": "Postrojenje",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id_postr` INTEGER NOT NULL, `ozn_vr_postr` TEXT NOT NULL, `naz_postr` TEXT NOT NULL, `lokacija` TEXT, PRIMARY KEY(`id_postr`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id_postr` INTEGER NOT NULL, `ozn_vr_postr` TEXT NOT NULL, `naz_postr` TEXT NOT NULL, `lokacija` TEXT, `zadnji_pregled` TEXT, PRIMARY KEY(`id_postr`))",
         "fields": [
           {
             "fieldPath": "id_postr",
@@ -77,6 +77,11 @@
           {
             "fieldPath": "lokacija",
             "columnName": "lokacija",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "zadnji_pregled",
+            "columnName": "zadnji_pregled",
             "affinity": "TEXT"
           }
         ],
@@ -598,7 +603,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0ac39e5538d90da74729350cde6a71e7')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '97efbfeeafbb91188715a782cd877e62')"
     ]
   }
 }

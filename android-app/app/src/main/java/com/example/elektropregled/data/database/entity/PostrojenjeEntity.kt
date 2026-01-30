@@ -9,5 +9,6 @@ data class PostrojenjeEntity(
     val id_postr: Int,
     val ozn_vr_postr: String,
     val naz_postr: String,
-    val lokacija: String?
+    val lokacija: String?,
+    val zadnji_pregled: String? = null // ISO 8601 format - last check date synced from server
 )

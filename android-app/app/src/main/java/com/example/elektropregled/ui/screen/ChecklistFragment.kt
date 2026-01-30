@@ -75,6 +75,12 @@ class ChecklistFragment : Fragment() {
             },
             getValue = { uredajId, parametarId ->
                 viewModel.getParameterValue(uredajId, parametarId)
+            },
+            onNapomenaChanged = { uredajId, napomena ->
+                viewModel.updateDeviceNapomena(uredajId, napomena)
+            },
+            getNapomena = { uredajId ->
+                viewModel.getDeviceNapomena(uredajId)
             }
         )
         

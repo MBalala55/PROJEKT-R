@@ -6,6 +6,7 @@ import com.example.elektropregled.data.api.dto.PostrojenjeSummary
 import com.example.elektropregled.data.repository.PostrojenjeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -28,18 +29,20 @@ class FacilityListViewModel(
             try {
                 _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
                 
-                repository.getPostrojenja()
-                    .onSuccess { facilities ->
+                // Load facilities and observe for updates
+                repository.getPostrojenjaFlow()
+                    .catch { e ->
+                        e.printStackTrace()
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            facilities = facilities
+                            errorMessage = e.message ?: "Greška pri učitavanju postrojenja"
                         )
                     }
-                    .onFailure { error ->
-                        error.printStackTrace() // Log the error
+                    .collect { facilities ->
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            errorMessage = error.message ?: "Greška pri učitavanju postrojenja"
+                            facilities = facilities,
+                            errorMessage = null
                         )
                     }
             } catch (e: Exception) {
